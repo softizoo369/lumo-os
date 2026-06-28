@@ -21,18 +21,81 @@ class DynamicSchemaForm(forms.Form):
             self.add_fields_from_schema(schema)
 
     def add_fields_from_schema(self, schema_dict):
-        # ফ্ল্যাটেনিং লজিক
-        for key, value in schema_dict.items():
-            # 🟢 SPRINT 5 FIX: Handle UUID/Reference types safely to prevent 500 crashes
+        for key, value_def in schema_dict.items():
             initial_val = self.initial_content.get(key, '')
             
-            # Check if value is a dict (which means the raw schema got passed in by mistake)
-            if isinstance(value, dict) and value.get('type') == 'reference':
-                # If initial_val is also somehow the raw dict, clear it out to avoid UUID ValidationError
+            # SPRINT 5 FIX: Handle UUID/Reference types safely
+            if isinstance(value_def, dict) and value_def.get('type') in ['reference', 'image']:
                 if isinstance(initial_val, dict):
                     initial_val = ''
             
-            self.fields[key] = forms.CharField(initial=initial_val)
+            # Extract definition (backward compatible with flat schemas)
+            field_type = value_def.get('type', 'text') if isinstance(value_def, dict) else 'text'
+            label = value_def.get('label', key.replace('_', ' ').title()) if isinstance(value_def, dict) else key.replace('_', ' ').title()
+            required = value_def.get('required', False) if isinstance(value_def, dict) else False
+
+            # Type Mapping
+            if field_type == 'boolean':
+                # Convert string 'true'/'false' from JSON to actual boolean for checkbox
+                is_checked = initial_val in [True, 'true', 'True', 1, '1']
+                self.fields[key] = forms.BooleanField(
+                    label=label,
+                    required=required,
+                    initial=is_checked,
+                    widget=forms.CheckboxInput(attrs={'class': 'form-check-input ms-2'})
+                )
+            elif field_type == 'textarea':
+                self.fields[key] = forms.CharField(
+                    label=label,
+                    required=required,
+                    initial=initial_val,
+                    widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 4})
+                )
+            elif field_type == 'url':
+                self.fields[key] = forms.URLField(
+                    label=label,
+                    required=required,
+                    initial=initial_val,
+                    widget=forms.URLInput(attrs={'class': 'form-control'})
+                )
+            elif field_type in ['number', 'integer']:
+                self.fields[key] = forms.FloatField(
+                    label=label,
+                    required=required,
+                    initial=initial_val if initial_val != '' else None,
+                    widget=forms.NumberInput(attrs={'class': 'form-control'})
+                )
+            elif field_type == 'color':
+                self.fields[key] = forms.CharField(
+                    label=label,
+                    required=required,
+                    initial=initial_val or '#000000',
+                    widget=forms.TextInput(attrs={'type': 'color', 'class': 'form-control form-control-color'})
+                )
+            elif field_type == 'select':
+                choices = [(c, c) for c in value_def.get('options', [])]
+                self.fields[key] = forms.ChoiceField(
+                    label=label,
+                    required=required,
+                    choices=choices,
+                    initial=initial_val,
+                    widget=forms.Select(attrs={'class': 'form-select'})
+                )
+            elif field_type == 'image':
+                # TASK 2: Media Integration placeholder. Renders as a text input with a special class for JS picker.
+                self.fields[key] = forms.CharField(
+                    label=label,
+                    required=required,
+                    initial=initial_val,
+                    widget=forms.TextInput(attrs={'class': 'form-control media-picker-input', 'readonly': 'readonly', 'placeholder': 'Select an image...'})
+                )
+            else: # Fallback to standard text
+                self.fields[key] = forms.CharField(
+                    label=label,
+                    required=required,
+                    initial=initial_val,
+                    widget=forms.TextInput(attrs={'class': 'form-control'})
+                )
 
     def add_form_fields(self, schema_list):
         # ফর্ম বিল্ডারের JSON Array (List of dicts) থেকে ফিল্ড বানানো

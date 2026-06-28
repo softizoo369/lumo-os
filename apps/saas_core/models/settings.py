@@ -1,3 +1,4 @@
+# apps/saas_core/models/settings.py
 from django.db import models
 from apps.saas_core.models.base import LumoBaseModel
 from apps.saas_core.models.tenant import Workspace
@@ -5,6 +6,7 @@ from apps.saas_core.models.tenant import Workspace
 # ==========================================
 # 1. GLOBAL SYSTEM CONFIGURATION (THE CONSTITUTION)
 # ==========================================
+# apps/saas_core/models/settings.py
 class GlobalConfiguration(LumoBaseModel):
     """
     Singleton Model: Controls the fundamental behavior of the entire SaaS platform.
@@ -12,8 +14,16 @@ class GlobalConfiguration(LumoBaseModel):
     # Core Identity
     site_name = models.CharField(max_length=100, default="Lumo OS")
     support_email = models.EmailField(default="support@lumodigital.co")
-    default_timezone = models.CharField(max_length=50, default="Asia/Dhaka")
+    default_timezone = models.CharField(max_length=50, default="Asia/Dhaka") # Kept explicitly as CharField
     maintenance_mode = models.BooleanField(default=False)
+    
+    # 🟢 PHASE 1 ADDITION: Platform Domain Routing (Additive)
+    base_domain = models.CharField(max_length=255, default="lumodigital.co", help_text="e.g., lumodigital.co")
+    app_domain = models.CharField(max_length=255, default="app.lumodigital.co", help_text="e.g., app.lumodigital.co")
+    api_domain = models.CharField(max_length=255, default="api.lumodigital.co")
+    media_domain = models.CharField(max_length=255, default="media.lumodigital.co")
+    cdn_domain = models.CharField(max_length=255, default="cdn.lumodigital.co")
+    portal_prefix = models.CharField(max_length=50, default="portal", help_text="e.g., 'portal' -> portal.sauda.com")
 
     # 🟢 SAAS CONSTITUTION v1 SETTINGS
     allow_company_before_subscription = models.BooleanField(default=True, help_text="Allow creating 1 company before paying.")
@@ -29,6 +39,12 @@ class GlobalConfiguration(LumoBaseModel):
     def save(self, *args, **kwargs):
         """Forces Singleton behavior (always ID 1)"""
         self.pk = 1 
+        # 🟢 Safely clean domains without breaking existing logic
+        for field in ['base_domain', 'app_domain', 'api_domain', 'media_domain', 'cdn_domain']:
+            val = getattr(self, field, "")
+            if val:
+                val = val.replace('https://', '').replace('http://', '').strip('/')
+                setattr(self, field, val)
         super().save(*args, **kwargs)
 
     @classmethod
@@ -79,3 +95,4 @@ class PaymentGatewayConfig(LumoBaseModel):
     def __str__(self):
         mode = "TEST" if self.is_test_mode else "LIVE"
         return f"{self.gateway.name} ({mode}) - {self.workspace.name}"
+

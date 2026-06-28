@@ -60,3 +60,32 @@
 5. **Clean up:** বর্তমান ড্যাশবোর্ড থেকে ইনলাইন সেকশন রেন্ডারিং মুছে ফেলা।
 
 আপনি কি প্রস্তুত যে আমি **Sprint 3**-এর জন্য এক্সাক্ট কোড প্যাচগুলো জেনারেট করা শুরু করব? (If yes, just say: **"GENERATE SPRINT 3 PATCH"**)
+
+PHASE 5
+────────
+
+1. DynamicSchemaForm Upgrade
+2. Section Editor Sidebar
+3. Image Field Support
+4. Basic Media Selector
+
+PHASE 6
+────────
+
+5. Global Site Settings
+6. Logo/Favicon Support
+7. Analytics & Pixel UI
+
+PHASE 7
+────────
+
+8. Section Duplicate
+9. Autosave Draft
+10. Builder UX Polish
+
+PHASE 8
+────────
+
+11. Navigation FK Refactor
+12. Dead Code Cleanup
+13. Performance Optimization

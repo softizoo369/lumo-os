@@ -6,31 +6,28 @@ from django.urls import reverse, NoReverseMatch
 # 🟢 FIX: কাস্টম TenantManager ইমপোর্ট
 from core.managers import TenantManager 
 
-class DataSourceType(models.TextChoices):
-    MANUAL = 'MANUAL', 'Manual Input'
-    PRODUCTS = 'PRODUCTS', 'E-commerce Products'
-    POSTS = 'POSTS', 'Blog Posts'
-
 class DomainStatus(models.TextChoices):
     PENDING = 'PENDING', 'Pending Verification'
     VERIFIED = 'VERIFIED', 'Verified & Active'
     FAILED = 'FAILED', 'Verification Failed'
 
-class StorageProvider(models.TextChoices):
-    LOCAL = 'LOCAL', 'Local Storage'
-    S3 = 'S3', 'AWS S3'
-    R2 = 'R2', 'Cloudflare R2'
+# 🟢 PHASE 2 ADDITION: New Enums
+class DomainType(models.TextChoices):
+    PLATFORM = 'PLATFORM', 'System Platform Domain'
+    APP = 'APP', 'SaaS App/Builder Domain'
+    TENANT_SITE = 'TENANT_SITE', 'Tenant Public Website'
+    PORTAL = 'PORTAL', 'Customer/Vendor Portal'
+    API = 'API', 'API Endpoint'
+    MEDIA = 'MEDIA', 'Media Storage'
+    CDN = 'CDN', 'Content Delivery Network'
+    CUSTOM = 'CUSTOM', 'Custom Routing'
 
-class DeploymentStatus(models.TextChoices):
-    QUEUED = 'QUEUED', 'Queued for Build'
-    BUILDING = 'BUILDING', 'Building & Purging Cache'
-    PUBLISHED = 'PUBLISHED', 'Live & Published'
-    FAILED = 'FAILED', 'Deployment Failed'
-
-class RevisionStatus(models.TextChoices):
-    DRAFT = 'DRAFT', 'Draft'
-    PUBLISHED = 'PUBLISHED', 'Published (Live)'
-    ARCHIVED = 'ARCHIVED', 'Archived'
+class DNSStatus(models.TextChoices):
+    PENDING = 'PENDING', 'Pending Configuration'
+    VERIFYING = 'VERIFYING', 'Verifying Records'
+    ACTIVE = 'ACTIVE', 'Active & Propagated'
+    FAILED = 'FAILED', 'Verification Failed'
+    INVALID = 'INVALID', 'Invalid Configuration'
 
 # --- 1. DOMAIN LAYER ---
 class SiteDomain(LumoBaseModel):
@@ -39,6 +36,18 @@ class SiteDomain(LumoBaseModel):
     is_primary = models.BooleanField(default=False)
     is_subdomain = models.BooleanField(default=False)
     ssl_status = models.BooleanField(default=False)
+    
+    # 🟢 PHASE 2 ADDITION: Strictly additive fields
+    domain_type = models.CharField(
+        max_length=20, 
+        choices=DomainType.choices, 
+        default=DomainType.TENANT_SITE # Keeps existing domains functional as main websites
+    )
+    dns_status = models.CharField(
+        max_length=20,
+        choices=DNSStatus.choices,
+        default=DNSStatus.PENDING,
+    )
 
     objects = TenantManager()
 
@@ -47,7 +56,7 @@ class SiteDomain(LumoBaseModel):
         constraints = [models.UniqueConstraint(fields=['workspace'], condition=models.Q(is_primary=True), name='one_primary_domain')]
 
     def __str__(self):
-        return self.domain_name
+        return f"{self.domain_name} ({self.domain_type})"
 
 class DomainVerification(LumoBaseModel):
     domain = models.OneToOneField(SiteDomain, on_delete=models.CASCADE, related_name='verification')
@@ -180,8 +189,16 @@ class TenantSite(LumoBaseModel):
     preset_override_json = models.JSONField(default=dict, blank=True)
     google_analytics_id = models.CharField(max_length=50, blank=True, null=True)
     fb_pixel_id = models.CharField(max_length=50, blank=True, null=True)
+    
+    # 🟢 TASK 3: Global Settings Fields added here
+    logo = models.ForeignKey('MediaAsset', on_delete=models.SET_NULL, null=True, blank=True, related_name='site_logos')
+    favicon = models.ForeignKey('MediaAsset', on_delete=models.SET_NULL, null=True, blank=True, related_name='site_favicons')
+    default_social_image = models.ForeignKey('MediaAsset', on_delete=models.SET_NULL, null=True, blank=True, related_name='site_social_images')
+    head_scripts = models.TextField(blank=True, null=True, help_text="Injected before </head>")
+    body_scripts = models.TextField(blank=True, null=True, help_text="Injected before </body>")
 
     objects = TenantManager()
+    # ... rest remains unchanged
 
     class Meta:
         db_table = 'lumo_sites_tenant_site'
@@ -328,7 +345,11 @@ class SiteMenuItem(LumoBaseModel):
     menu = models.ForeignKey(SiteMenu, on_delete=models.CASCADE, related_name='items')
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
     label = models.CharField(max_length=100)
-    url = models.CharField(max_length=255)
+    url = models.CharField(max_length=255, blank=True) # Make blank=True to allow pure FK routing
+    
+    # 🟢 TASK 5: Typed Linking
+    linked_page = models.ForeignKey('TenantPage', on_delete=models.CASCADE, null=True, blank=True, related_name='menu_references')
+    
     sort_order = models.IntegerField(default=0)
 
     objects = TenantManager()
@@ -350,25 +371,28 @@ class SiteMenuItem(LumoBaseModel):
     @property
     def href(self):
         """
-        🟢 SPRINT 1 FIX (OPTIMIZED): Smartly resolves stored strings to absolute paths.
-        Completely eliminates N+1 query vulnerability by parsing and reversing in memory.
+        🟢 TASK 5 FIX: Hybrid Typed/String Resolution.
+        Prioritizes the exact linked_page if it exists, otherwise falls back to legacy string.
         """
+        # 1. Typed resolution (Bulletproof)
+        if self.linked_page and not self.linked_page.is_deleted:
+            return self.linked_page.get_absolute_url()
+            
+        # 2. Legacy string fallback (Preserves backward compatibility)
         url_str = (self.url or "").strip()
-        
-        # 1. Bypass absolute URIs (External links, mailto, tel, anchors)
+        if not url_str:
+            return "/"
+            
         if url_str.startswith(('http://', 'https://', 'mailto:', 'tel:', '#')):
             return url_str
             
-        # 2. Extract clean slug
         clean_slug = url_str.strip('/')
         if not clean_slug:
             return "/"
             
-        # 3. Optimistic Django Namespace Routing
         try:
             return reverse('lumo_sites:public_page', kwargs={'slug': clean_slug})
         except NoReverseMatch:
-            # Fallback if URL isn't meant for public_page namespace
             return f"/{clean_slug}"
 
 class FormDefinition(LumoBaseModel):

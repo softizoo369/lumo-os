@@ -224,7 +224,8 @@ def builder_dashboard_view(request):
     tenant_site = getattr(workspace, "website", None) if workspace else None
     
     if not tenant_site:
-        return HttpResponse("No site provisioned for this workspace yet.")
+        messages.info(request, "👋 Welcome! Choose a theme to start building your website.")
+        return redirect('lumo_sites:theme_store')  # 🟢 SaaS Onboarding Routing
 
     # 🟢 FIX: Ensure we only fetch pages that are NOT deleted
     pages = TenantPage.objects.filter(site=tenant_site, is_deleted=False).order_by('-created_at')
@@ -243,7 +244,8 @@ def page_builder_view(request, page_id):
     tenant_site = getattr(workspace, "website", None) if workspace else None
     
     if not tenant_site:
-        return redirect('lumo_sites:builder_dashboard')
+        messages.info(request, "👋 Welcome! Choose a theme to start building your website.")
+        return redirect('lumo_sites:theme_store')  # 🟢 SaaS Onboarding Routing
         
     page = get_object_or_404(TenantPage, id=page_id, site=tenant_site, is_deleted=False)
     
@@ -309,14 +311,14 @@ def publish_action_view(request, revision_id):
         
     return redirect('lumo_sites:builder_dashboard')
 
-# ❌ DELETE: Remove the old/dead 'publish_page_view' function entirely from views.py
 
 def theme_editor_view(request):
     workspace = WorkspaceService.get_current_workspace(request)
     tenant_site = getattr(workspace, "website", None) if workspace else None
     
     if not tenant_site:
-        return HttpResponse("No site provisioned for this workspace yet.")
+        messages.info(request, "👋 Welcome! Choose a theme to start building your website.")
+        return redirect('lumo_sites:theme_store')
 
     active_preset = tenant_site.active_preset
     if request.method == 'POST':
@@ -484,8 +486,9 @@ def navigation_manager_view(request):
     tenant_site = getattr(workspace, "website", None) if workspace else None
     
     if not tenant_site:
-        return HttpResponse("No site provisioned for this workspace yet.")
-        
+        messages.info(request, "👋 Welcome! Choose a theme to start building your website.")
+        return redirect('lumo_sites:theme_store')  # 🟢 SaaS Onboarding Routing
+
     # 🟢 TASK 4 FIX: Idempotent Recovery (Replaces the 'if not menus.exists():' block)
     SiteMenu.objects.get_or_create(site=tenant_site, name="Main Navigation", defaults={'workspace': workspace})
     SiteMenu.objects.get_or_create(site=tenant_site, name="Footer Menu", defaults={'workspace': workspace})
@@ -858,32 +861,6 @@ def install_theme_view(request, version_id):
     )
     messages.success(request, f"🚀 '{version.kit.name}' থিমটি সফলভাবে ইনস্টল হয়েছে!")
     return redirect('lumo_sites:builder_dashboard')
-
-
-def publish_page_view(request, page_id):
-    if request.method == 'POST':
-        workspace = WorkspaceService.get_current_workspace(request)
-        # Ensure the user only publishes a page from their workspace
-        page = get_object_or_404(TenantPage, id=page_id, workspace=workspace)
-        
-        success, message = PublishService.publish_page(page_id, user=request.user)
-        
-        if success:
-            messages.success(request, f"🎉 '{page.title}' has been successfully published!")
-            # Audit Log
-            AuditService.log(
-                request=request, 
-                workspace=workspace, 
-                action="page.published", 
-                resource_type="TenantPage", 
-                resource_id=str(page.id),
-                status="SUCCESS"
-            )
-        else:
-            messages.error(request, f"Failed to publish page: {message}")
-            
-    # Redirect back to the page editor or list
-    return redirect('lumo_sites:page_editor', page_id=page_id)
 
 
 def domain_verify_action_view(request, domain_id):

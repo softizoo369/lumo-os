@@ -3,15 +3,38 @@ from django.conf import settings
 from apps.saas_core.models.base import LumoBaseModel
 from apps.saas_core.models.tenant import Workspace
 from django.urls import reverse, NoReverseMatch
-# 🟢 FIX: কাস্টম TenantManager ইমপোর্ট
+from core.managers import TenantManager
+
 from core.managers import TenantManager 
+class DataSourceType(models.TextChoices):
+    MANUAL = 'MANUAL', 'Manual Input'
+    PRODUCTS = 'PRODUCTS', 'E-commerce Products'
+    POSTS = 'POSTS', 'Blog Posts'
 
 class DomainStatus(models.TextChoices):
     PENDING = 'PENDING', 'Pending Verification'
     VERIFIED = 'VERIFIED', 'Verified & Active'
     FAILED = 'FAILED', 'Verification Failed'
 
+class StorageProvider(models.TextChoices):
+    LOCAL = 'LOCAL', 'Local Storage'
+    S3 = 'S3', 'AWS S3'
+    R2 = 'R2', 'Cloudflare R2'
+
+class DeploymentStatus(models.TextChoices):
+    QUEUED = 'QUEUED', 'Queued for Build'
+    BUILDING = 'BUILDING', 'Building & Purging Cache'
+    PUBLISHED = 'PUBLISHED', 'Live & Published'
+    FAILED = 'FAILED', 'Deployment Failed'
+
+class RevisionStatus(models.TextChoices):
+    DRAFT = 'DRAFT', 'Draft'
+    PUBLISHED = 'PUBLISHED', 'Published (Live)'
+    ARCHIVED = 'ARCHIVED', 'Archived'
+
+# ==========================================
 # 🟢 PHASE 2 ADDITION: New Enums
+# ==========================================
 class DomainType(models.TextChoices):
     PLATFORM = 'PLATFORM', 'System Platform Domain'
     APP = 'APP', 'SaaS App/Builder Domain'
@@ -41,7 +64,7 @@ class SiteDomain(LumoBaseModel):
     domain_type = models.CharField(
         max_length=20, 
         choices=DomainType.choices, 
-        default=DomainType.TENANT_SITE # Keeps existing domains functional as main websites
+        default=DomainType.TENANT_SITE 
     )
     dns_status = models.CharField(
         max_length=20,

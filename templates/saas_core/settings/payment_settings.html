@@ -1,0 +1,111 @@
+{% extends 'base.html' %} 
+
+{% block title %}Payment Settings | Lumo OS{% endblock %} 
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-credit-card-2-front text-primary me-2"></i>Payment Gateways</h3>
+            <p class="text-muted small mb-0">Configure your API credentials to receive automated payments.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <h6 class="fw-bold text-dark mb-3 text-uppercase"><i class="bi bi-hdd-stack text-secondary me-2"></i>Active Integrations</h6>
+            
+            {% for config in configured_gateways %}
+            <div class="card border border-2 {% if config.is_active %}border-success{% else %}border-secondary{% endif %} shadow-sm rounded-4 mb-3 p-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="fw-bold mb-0 text-dark">{{ config.gateway.name }}</h6>
+                    <span class="badge {% if config.is_active %}bg-success{% else %}bg-secondary{% endif %} rounded-pill">
+                        {% if config.is_active %}Live & Active{% else %}Disabled{% endif %}
+                    </span>
+                </div>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge bg-light text-dark border font-monospace small">
+                        {% if config.is_test_mode %}<i class="bi bi-bug me-1"></i>TEST MODE{% else %}<i class="bi bi-rocket-takeoff me-1"></i>PRODUCTION{% endif %}
+                    </span>
+                </div>
+                <p class="text-muted x-small font-monospace mb-0 text-truncate">Key: {{ config.api_key|default:"Not provided" }}</p>
+                <p class="text-muted x-small font-monospace mb-0 text-truncate">Key: {{ config.api_key|default:"Not provided" }}</p>
+                
+                <div class="d-flex gap-2 mt-3 pt-3 border-top">
+                    <a href="{% url 'saas_core:workspace_payment_update' config.id %}" class="btn btn-sm btn-light border flex-grow-1 text-primary fw-medium">
+                        <i class="bi bi-pencil-square me-1"></i> Edit
+                    </a>
+                    <form method="POST" action="{% url 'saas_core:workspace_payment_delete' config.id %}" class="flex-grow-1 m-0" onsubmit="return confirm('Are you sure you want to remove this gateway connection?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-light border flex-grow-1 text-danger fw-medium w-100 hover-danger">
+                            <i class="bi bi-trash3 me-1"></i> Remove
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% empty %}
+            <div class="card border-dashed bg-light shadow-none rounded-4 p-5 text-center">
+                <i class="bi bi-plug text-muted opacity-25 mb-2" style="font-size: 3rem;"></i>
+                <h6 class="fw-bold text-dark mb-1">No Gateways Configured</h6>
+                <p class="text-muted small mb-0">Add your first payment gateway credentials from the right panel to start accepting automated payments.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="col-lg-7">
+            <form method="POST" class="card border-0 shadow-sm rounded-4 p-4">
+                {% csrf_token %}
+                
+                <h6 class="fw-bold text-dark mb-4 border-bottom pb-2 text-uppercase"><i class="bi bi-plus-circle text-primary me-2"></i>Link New Gateway</h6>
+                
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold text-muted">Select Provider</label>
+                        {{ form.gateway }}
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-check form-switch bg-light p-2 rounded border d-flex justify-content-between align-items-center mb-0">
+                            <label class="form-check-label fw-bold text-dark mb-0 ms-2" for="id_is_active">Enable this Gateway</label>
+                            {{ form.is_active }}
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-check form-switch bg-warning bg-opacity-10 p-2 rounded border border-warning d-flex justify-content-between align-items-center mb-0">
+                            <label class="form-check-label fw-bold text-warning-emphasis mb-0 ms-2" for="id_is_test_mode">Sandbox / Test Mode</label>
+                            {{ form.is_test_mode }}
+                        </div>
+                    </div>
+
+                    <div class="col-12 mt-4">
+                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-shield-lock me-2"></i>API Credentials</h6>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-muted">API Key / Store ID</label>
+                        {{ form.api_key }}
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-muted">API Secret / Password</label>
+                        {{ form.api_secret }}
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold text-muted">Webhook Secret (Optional)</label>
+                        {{ form.webhook_secret }}
+                        <small class="text-muted x-small d-block mt-1">Used to verify automated payment callbacks from the provider.</small>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end border-top pt-3 mt-4">
+                    <button type="submit" class="btn btn-primary fw-medium px-4 rounded-pill shadow-sm">
+                        <i class="bi bi-link-45deg me-2"></i> Connect Gateway
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

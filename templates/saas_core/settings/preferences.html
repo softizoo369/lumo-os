@@ -1,0 +1,62 @@
+{% extends 'base.html' %} 
+
+{% block title %}Workspace Preferences | Lumo OS{% endblock %} 
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-sliders text-primary me-2"></i>Workspace Preferences</h3>
+            <p class="text-muted small mb-0">Manage localized settings for <strong class="text-dark">{{ workspace.name }}</strong>.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-7">
+            <form method="POST" class="card border-0 shadow-sm rounded-4 p-4">
+                {% csrf_token %}
+                
+                <h6 class="fw-bold text-dark mb-3 text-uppercase" style="letter-spacing: 1px;"><i class="bi bi-receipt text-secondary me-2"></i>Billing & Localization</h6>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-muted">Invoice Prefix</label>
+                        {{ form.invoice_prefix }}
+                        <small class="text-muted x-small">e.g. INV-2026-001</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-muted">Reply-To Email (Invoices)</label>
+                        {{ form.reply_to_email }}
+                        <small class="text-muted x-small">Customers will reply to this email.</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-muted">Timezone</label>
+                        {{ form.default_timezone }} <!-- Use form.timezone if default_timezone throws error -->
+                        {{ form.timezone }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-muted">Date Format</label>
+                        {{ form.date_format }}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end border-top pt-3">
+                    <button type="submit" class="btn btn-primary fw-medium px-4 rounded-pill shadow-sm">
+                        <i class="bi bi-check-circle-fill me-2"></i> Save Preferences
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-light">
+                <h6 class="fw-bold mb-3"><i class="bi bi-info-circle-fill text-primary me-2"></i>How Preferences Work</h6>
+                <p class="small text-muted mb-3">These settings override the global system defaults specifically for your workspace. Whenever you create an invoice or a report, the system will use your customized prefix and date formats.</p>
+                <div class="alert alert-success border-0 small py-2">
+                    <i class="bi bi-lightning-charge-fill me-1"></i> Changes are applied instantly across your entire workspace.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

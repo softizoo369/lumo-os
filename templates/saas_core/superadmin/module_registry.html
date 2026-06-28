@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}Module Registry | Superadmin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3 px-lg-4">
+    
+    <!-- 🟢 FIX: Premium Header with Breadcrumbs & Action Button -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start mb-4 pb-3 border-bottom">
+        <div class="mb-3 mb-md-0">
+            <h3 class="fw-bold text-dark mb-1" style="letter-spacing: -0.5px;">
+                <i class="bi bi-cpu text-danger me-2"></i>Module Registry
+            </h3>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0 small">
+                    <li class="breadcrumb-item"><a href="{% url 'saas_core:dashboard_home' %}" class="text-decoration-none text-muted"><i class="bi bi-house"></i> Home</a></li>
+                    <li class="breadcrumb-item text-muted">Superadmin</li>
+                    <li class="breadcrumb-item active fw-semibold text-dark">Module Registry</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm fw-bold d-flex align-items-center">
+                <i class="bi bi-plus-lg me-2"></i> Register New Module
+            </button>
+        </div>
+    </div>
+
+    <!-- Cards Layout -->
+    <div class="row g-4">
+        {% for feature in features %}
+        <div class="col-md-4 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 hover-shadow transition">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="bg-danger bg-opacity-10 text-danger p-3 rounded-3 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                            <i class="bi bi-box-seam fs-5"></i>
+                        </div>
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2 py-1" style="font-size: 0.65rem;">Active</span>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-1">{{ feature.name }}</h6>
+                    <p class="text-muted small mb-3">Code: <code class="bg-light px-1">{{ feature.code }}</code></p>
+                    
+                    <div class="d-flex gap-1 flex-wrap mt-2">
+                        {% for perm in feature.permissions.all %}
+                            <span class="badge bg-light text-muted border" style="font-size: 0.65rem;">{{ perm.code|cut:feature.code|cut:"." }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-top border-opacity-10 p-3">
+                    <button class="btn btn-sm btn-light border w-100 rounded-pill fw-medium text-danger hover-danger">Disable Module</button>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="bi bi-cpu text-muted opacity-25" style="font-size: 3rem;"></i>
+            <h6 class="mt-3 fw-bold text-dark">No Modules Registered</h6>
+            <p class="small text-muted mb-0">Add features to your system to make them available to workspaces.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .hover-shadow:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important; border-color: #cbd5e1 !important; }
+    .transition { transition: all 0.3s ease; }
+    .hover-danger:hover { background-color: #fee2e2 !important; border-color: #fca5a5 !important; }
+</style>
+{% endblock %}

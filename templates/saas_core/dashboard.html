@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Dashboard | {{ workspace.name }} - {{ global_config.site_name }}{% endblock %}
+
+{% block extra_head %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        /* Premium Dashboard Styles */
+        .stat-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color, #e2e8f0);
+            border-radius: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -2px rgba(0, 0, 0, 0.02);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 20px -3px rgba(0, 0, 0, 0.06), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+            border-color: #cbd5e1;
+        }
+        .stat-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .chart-box {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #0f172a 100%);
+            border-radius: 24px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.3);
+            border: none;
+        }
+        .chart-box::after {
+            content: '';
+            position: absolute;
+            top: -50%; right: -5%;
+            width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+            opacity: 0.8;
+            filter: blur(40px);
+            pointer-events: none;
+        }
+        /* Subscription Alert Premium Styles */
+        .alert-premium {
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.05);
+        }
+        .alert-warning {
+            background-color: #fffbeb !important;
+            color: #92400e !important;
+            border-left: 5px solid #f59e0b !important;
+        }
+        .alert-danger {
+            background-color: #fef2f2 !important;
+            color: #991b1b !important;
+            border-left: 5px solid #ef4444 !important;
+        }
+        .alert-success {
+            background-color: #f0fdf4 !important;
+            color: #166534 !important;
+            border-left: 5px solid #22c55e !important;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3 px-lg-3">
+
+    <!-- Subscription Alert Block -->
+    {% if subscription_alert and subscription_alert.is_alert_visible %}
+        <div class="alert {{ subscription_alert.alert_class }} alert-premium mb-4 py-3 px-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3" role="alert">
+            <div class="d-flex align-items-center">
+                <div class="bg-white rounded-circle d-flex align-items-center justify-content-center shadow-sm me-3" style="width: 40px; height: 40px;">
+                    <i class="bi {% if subscription_alert.status == 'EXPIRED' %}bi-exclamation-octagon-fill text-danger{% else %}bi-exclamation-triangle-fill text-warning{% endif %} fs-5"></i>
+                </div>
+                <span class="fw-medium" style="font-size: 0.95rem;">
+                    {% if subscription_alert.status == 'EXPIRED' %}
+                        Your <strong>{{ subscription_alert.plan_name }}</strong> subscription has expired. Please renew to continue using all features.
+                    {% elif subscription_alert.status == 'EXPIRING_SOON' %}
+                        Your <strong>{{ subscription_alert.plan_name }}</strong> renews in <strong>{{ subscription_alert.days_remaining }}</strong> days (on {{ subscription_alert.expiration_date|date:"M d, Y" }})
+                    {% endif %}
+                </span>
+            </div>
+            <div>
+                <a href="{% url 'saas_core:subscription_plans' %}" class="btn btn-dark rounded-pill px-4 py-2 shadow-sm fw-bold text-nowrap">
+                    <i class="bi bi-arrow-repeat me-1"></i> Renew Now
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Page Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2">
+        <div>
+            <h3 class="fw-bold text-dark mb-1" style="letter-spacing: -0.5px;">Workspace Overview</h3>
+            <p class="text-muted small mb-0">Here's what's happening in your business today.</p>
+        </div>
+        <div class="mt-3 mt-md-0">
+            <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-semibold border border-primary border-opacity-25 shadow-sm">
+                <i class="bi bi-star-fill text-warning me-1"></i> {{ current_workspace.subscription.plan.name|default:"Starter Plan" }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Statistics Cards Row -->
+    <div class="row g-4 mb-5">
+        
+        <!-- Active Modules (FIXED VARIABLE) -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="text-secondary text-uppercase fw-bold mb-1 d-block" style="font-size: 0.75rem; letter-spacing: 1px;">Active Modules</span>
+                        <h2 class="fw-bold mb-2 text-dark">{{ sidebar_menu|length }}</h2>
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1 small">
+                                <i class="bi bi-check-circle-fill me-1"></i> Installed Apps
+                            </span>
+                        </div>
+                    </div>
+                    <div class="stat-icon" style="background: rgba(13, 110, 253, 0.1); color: var(--primary-color);">
+                        <i class="bi bi-grid-fill"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Staff -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="text-secondary text-uppercase fw-bold mb-1 d-block" style="font-size: 0.75rem; letter-spacing: 1px;">Total Staff</span>
+                        <h2 class="fw-bold mb-2 text-dark">1 <span class="fs-5 text-muted fw-normal">/ 5</span></h2>
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-2 py-1 small" style="color: #0ea5e9 !important;">
+                                <i class="bi bi-people-fill me-1"></i> Team members
+                            </span>
+                        </div>
+                    </div>
+                    <div class="stat-icon" style="background: rgba(14, 165, 233, 0.1); color:#0ea5e9;">
+                        <i class="bi bi-person-badge"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Storage Used -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="text-secondary text-uppercase fw-bold mb-1 d-block" style="font-size: 0.75rem; letter-spacing: 1px;">Storage Used</span>
+                        <h2 class="fw-bold mb-2 text-dark">0.05 <span class="fs-5 text-muted fw-normal">GB</span></h2>
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1 small">
+                                <i class="bi bi-cloud-check-fill me-1"></i> Out of 1 GB
+                            </span>
+                        </div>
+                    </div>
+                    <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color:#10b981;">
+                        <i class="bi bi-database-fill"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subscription Status -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="text-secondary text-uppercase fw-bold mb-1 d-block" style="font-size: 0.75rem; letter-spacing: 1px;">Subscription</span>
+                        <h2 class="fw-bold mb-2 text-dark">Active</h2>
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-2 py-1 small" style="color: #d97706 !important;">
+                                <i class="bi bi-clock-history me-1"></i> Renews in 14 Days
+                            </span>
+                        </div>
+                    </div>
+                    <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color:#f59e0b;">
+                        <i class="bi bi-credit-card-fill"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supercharge Premium Banner -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="chart-box p-4 p-lg-5 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-4">
+                <div style="z-index: 1;">
+                    <span class="badge bg-white text-dark rounded-pill px-3 py-2 fw-bold mb-3 shadow-sm d-inline-block">Scale Your Business</span>
+                    <h2 class="fw-bold mb-2 text-white">Supercharge your Workspace</h2>
+                    <p class="mb-0 text-light opacity-75 fs-6" style="max-width: 500px;">Head over to the App Store to install CRM, Invoicing, HR, and Website Builders.</p>
+                </div>
+                <div style="z-index: 1;">
+                    <a href="{% url 'saas_core:subscription_plans' %}" class="btn btn-light btn-lg rounded-pill fw-bold px-5 shadow" style="color: var(--primary-color);">
+                        <i class="bi bi-rocket-takeoff me-2"></i> Upgrade Plan
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

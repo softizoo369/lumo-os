@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+<title>{% block title %}{{ current_workspace.name|default:global_config.site_name }}{% endblock %}</title>
+
+{% block content %}
+<div class="container-fluid py-3 px-lg-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">Workspace Settings</h3>
+            <p class="text-muted small mb-0">Manage your company profile, currency, and financial preferences.</p>
+        </div>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" class="row g-4">
+        {% csrf_token %}
+        
+        <!-- Company Profile Section -->
+        <div class="col-xl-8">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4">
+                    <h6 class="fw-bold mb-0"><i class="bi bi-building text-primary me-2"></i> Company Profile</h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small">Company Name <span class="text-danger">*</span></label>
+                            <input type="text" name="company_name" class="form-control" value="{{ workspace.company_name }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small">Company Email</label>
+                            <input type="email" name="company_email" class="form-control" value="{{ settings.company_email|default:'' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small">Phone Number</label>
+                            <input type="text" name="company_phone" class="form-control" value="{{ settings.company_phone|default:'' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small">Website</label>
+                            <input type="url" name="website" class="form-control" value="{{ settings.website|default:'' }}" placeholder="https://">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-medium small">Company Address</label>
+                            <textarea name="address" class="form-control" rows="3">{{ settings.address|default:'' }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Localization & Finance Section -->
+        <div class="col-xl-4">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4">
+                    <h6 class="fw-bold mb-0"><i class="bi bi-globe-americas text-success me-2"></i> Localization & Finance</h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-medium small">Currency Code</label>
+                        <select name="currency_code" class="form-select">
+                            <option value="USD" {% if settings.currency_code == 'USD' %}selected{% endif %}>USD - US Dollar</option>
+                            <option value="BDT" {% if settings.currency_code == 'BDT' %}selected{% endif %}>BDT - Bangladeshi Taka</option>
+                            <option value="EUR" {% if settings.currency_code == 'EUR' %}selected{% endif %}>EUR - Euro</option>
+                            <option value="INR" {% if settings.currency_code == 'INR' %}selected{% endif %}>INR - Indian Rupee</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium small">Currency Symbol</label>
+                        <input type="text" name="currency_symbol" class="form-control" value="{{ settings.currency_symbol|default:'$' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium small">Default Tax Rate (%)</label>
+                        <input type="number" step="0.01" name="default_tax_rate" class="form-control" value="{{ settings.default_tax_rate|default:'0.00' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium small">Invoice Prefix</label>
+                        <input type="text" name="invoice_prefix" class="form-control" value="{{ settings.invoice_prefix|default:'INV-' }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Save Button -->
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
+                    <i class="bi bi-floppy me-2"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

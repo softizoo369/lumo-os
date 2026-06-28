@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}UI Components - Lumo OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3 px-lg-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start mb-4 pb-3 border-bottom">
+        <div class="mb-3 mb-md-0">
+            <h3 class="fw-bold text-dark mb-1"><i class="bi bi-puzzle text-primary me-2"></i>UI Components</h3>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0 small">
+                    <li class="breadcrumb-item"><a href="{% url 'saas_core:dashboard_home' %}" class="text-decoration-none text-muted"><i class="bi bi-house"></i> Home</a></li>
+                    <li class="breadcrumb-item active fw-semibold">UI Components</li>
+                </ol>
+            </nav>
+        </div>
+        <a href="{% url 'lumo_sites:superadmin_section_create' %}" class="btn btn-dark rounded-pill px-4 shadow-sm fw-bold">
+            <i class="bi bi-plus-circle me-2"></i>New Component
+        </a>
+    </div>
+
+    {% regroup sections by category as category_list %}
+    
+    <div class="row g-4">
+        {% for category in category_list %}
+        <div class="col-12">
+            <h5 class="fw-bold text-muted text-uppercase mb-3" style="font-size: 0.85rem; letter-spacing: 1px;">{{ category.grouper }}</h5>
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="py-3 ps-4 text-muted small text-uppercase fw-bold">Component Name</th>
+                                <th class="py-3 text-muted small text-uppercase fw-bold">System Code</th>
+                                <th class="py-3 text-muted small text-uppercase fw-bold">Versions</th>
+                                <th class="py-3 pe-4 text-end text-muted small text-uppercase fw-bold">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for section in category.list %}
+                            <tr>
+                                <td class="ps-4 py-3 fw-bold text-dark">{{ section.name }}</td>
+                                <td class="font-monospace text-muted small">{{ section.code }}</td>
+                                <td>
+                                    {% for v in section.versions.all %}
+                                        <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill me-1">v{{ v.version_number }}</span>
+                                    {% empty %}
+                                        <span class="text-warning small">No versions mapped</span>
+                                    {% endfor %}
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <a href="{% url 'lumo_sites:superadmin_section_version_create' section.id %}" class="btn btn-sm btn-light border rounded-pill px-3 fw-bold">
+                                        <i class="bi bi-code-slash me-1"></i> Add HTML
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="bi bi-puzzle text-muted opacity-25 d-block mb-3" style="font-size: 4rem;"></i>
+            <h5 class="fw-bold text-dark">No Components Found</h5>
+            <p class="text-muted">Start creating base UI sections like Header, Hero, or Footer.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

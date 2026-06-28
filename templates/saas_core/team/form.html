@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load form_tags %}
+
+{% block title %}Invite Colleague | Lumo OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3 px-lg-4">
+    
+    {% include 'components/layouts/page_header.html' with title="Invite Colleague" show_help=True breadcrumbs='<li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted"><i class="bi bi-house"></i> Home</a></li><li class="breadcrumb-item"><a href="/settings/team/" class="text-decoration-none text-muted">Team</a></li><li class="breadcrumb-item active fw-semibold">Invite</li>' %}
+
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger shadow-sm rounded-3">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        {{ form.non_field_errors.0 }}
+    </div>
+    {% endif %}
+
+    <form method="POST" novalidate>
+        {% csrf_token %}
+
+        <div class="row">
+            <div class="col-xl-8 mb-4">
+                <div class="bg-white p-4 rounded-4 shadow-sm mb-4 border">
+                    <h6 class="fw-bold text-dark mb-3 text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">Invitation Details</h6>
+                    <p class="text-muted small mb-4">Send an email invitation to add a new colleague to your workspace. They will receive a secure link to set their password.</p>
+                    
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            {% include "components/forms/input_field.html" with field=form.email label="Colleague's Work Email" %}
+                        </div>
+                        <div class="col-md-6">
+                            {% include "components/forms/select_field.html" with field=form.role label="Assign Workspace Role" %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-3 mt-4 pt-2">
+                    <button type="submit" class="btn btn-primary px-5 py-2 rounded-pill fw-bold shadow-sm">
+                        <i class="bi bi-send-fill me-1"></i> Send Invite
+                    </button>
+                    <a href="{% url 'saas_core:team_list' %}" class="btn btn-light border px-4 py-2 rounded-pill fw-medium text-muted shadow-sm">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-xl-4">
+                <div class="bg-primary bg-opacity-10 p-4 rounded-4 shadow-sm mb-4 border border-primary border-opacity-25">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-info-circle-fill text-primary fs-4 me-2"></i>
+                        <h6 class="fw-bold text-primary mb-0">Role Permissions</h6>
+                    </div>
+                    <p class="text-muted small mb-3">Ensure you select the appropriate role. Permissions dictate what the user can see and modify within your companies.</p>
+                    <ul class="list-unstyled small text-muted mb-0">
+                        <li class="mb-2"><i class="bi bi-check2 text-success me-1"></i> <strong>Admin:</strong> Full access except billing.</li>
+                        <li class="mb-2"><i class="bi bi-check2 text-success me-1"></i> <strong>Manager:</strong> Can manage companies & staff.</li>
+                        <li><i class="bi bi-check2 text-success me-1"></i> <strong>Viewer:</strong> Read-only access.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

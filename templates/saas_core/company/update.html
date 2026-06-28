@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load form_tags %}
+
+{% block title %}Edit Company | Lumo OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3 px-lg-4">
+    {% include 'components/layouts/page_header.html' with title="Update Entity" show_help=False breadcrumbs='<li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted"><i class="bi bi-house"></i> Home</a></li><li class="breadcrumb-item"><a href="/companies/" class="text-decoration-none text-muted">Companies</a></li><li class="breadcrumb-item active fw-semibold">Edit Company</li>' %}
+
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger shadow-sm rounded-3">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ form.non_field_errors.0 }}
+    </div>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        <div class="row">
+            <!-- Left Column: Form Sections -->
+            <div class="col-xl-8 mb-4">
+                <div class="bg-white p-4 rounded-4 shadow-sm mb-4 border">
+                    <h6 class="fw-bold text-dark mb-3 text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">Basic Identity</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">{% include "components/forms/input_field.html" with field=form.name label="Company Name" %}</div>
+                        <div class="col-md-6">{% include "components/forms/input_field.html" with field=form.legal_name label="Legal/Registered Name" %}</div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-4 shadow-sm mb-4 border">
+                    <h6 class="fw-bold text-dark mb-3 text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">Contact Information</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">{% include "components/forms/input_field.html" with field=form.email label="Corporate Email" %}</div>
+                        <div class="col-md-6">{% include "components/forms/input_field.html" with field=form.phone label="Phone / WhatsApp" %}</div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-4 shadow-sm mb-4 border">
+                    <h6 class="fw-bold text-dark mb-3 text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">Localization & Category</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">{% include "components/forms/select_field.html" with field=form.country label="Operating Country" %}</div>
+                        <div class="col-md-6">{% include "components/forms/select_field.html" with field=form.timezone label="Timezone" %}</div>
+                        <div class="col-md-6">{% include "components/forms/select_field.html" with field=form.currency label="Base Currency" %}</div>
+                        <div class="col-md-6">{% include "components/forms/select_field.html" with field=form.industry label="Industry Sector" %}</div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-4 shadow-sm mb-4 border">
+                    <h6 class="fw-bold text-dark mb-2 text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">Operational Status</h6>
+                    <div class="form-check form-switch mt-2">
+                        <input class="form-check-input" type="checkbox" role="switch" name="is_active" id="id_is_active" {% if form.is_active.value %}checked{% endif %} style="transform: scale(1.2); margin-right: 10px;">
+                        <label class="form-check-label fw-bold ms-2 text-dark" for="id_is_active">Active Entity</label>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="d-flex align-items-center gap-3 mt-4 pt-2">
+                    <button type="submit" class="btn btn-primary px-5 py-2 rounded-pill fw-bold shadow-sm">
+                        <i class="bi bi-floppy me-1"></i> Update Company
+                    </button>
+                    <a href="{% url 'saas_core:company_list' %}" class="btn btn-light border px-4 py-2 rounded-pill fw-medium text-muted shadow-sm">Cancel</a>
+                </div>
+            </div>
+
+            <!-- Right Column: Logo Upload -->
+            <div class="col-xl-4">
+                <div class="bg-white p-4 rounded-4 shadow-sm mb-4 border text-center position-sticky" style="top: 100px;">
+                    <h6 class="fw-bold text-dark mb-4 text-uppercase text-start" style="font-size: 0.75rem; letter-spacing: 0.5px;">Branding</h6>
+                    
+                    <div class="border rounded-4 bg-light d-flex align-items-center justify-content-center mx-auto mb-3 position-relative overflow-hidden shadow-sm" style="width: 140px; height: 140px; border-style: dashed !important; border-color: #cbd5e1 !important;">
+                        {% if form.instance.logo %}
+                            <img id="logoPreview" src="{{ form.instance.logo.url }}" class="position-absolute top-0 start-0 w-100 h-100" style="object-fit: contain; z-index: 2; background: #fff; padding: 5px;">
+                            <i class="bi bi-building text-muted d-none" id="logoPreviewIcon" style="font-size: 3rem;"></i>
+                        {% else %}
+                            <i class="bi bi-building text-muted" id="logoPreviewIcon" style="font-size: 3rem;"></i>
+                            <img id="logoPreview" src="" class="position-absolute top-0 start-0 w-100 h-100 d-none" style="object-fit: contain; z-index: 2; background: #fff; padding: 5px;">
+                        {% endif %}
+                    </div>
+                    
+                    <label class="form-label fw-bold small d-block mt-3 text-dark">Update Company Logo</label>
+                    
+                    {% if form.logo.errors %}
+                        <input type="file" name="logo" id="id_logo" class="form-control form-control-sm bg-white is-invalid mb-1" accept=".jpg,.jpeg,.png,.webp" onchange="previewImage(event)">
+                        <div class="invalid-feedback fw-medium mb-2">{{ form.logo.errors.0 }}</div>
+                    {% else %}
+                        <input type="file" name="logo" id="id_logo" class="form-control form-control-sm bg-white mb-2" accept=".jpg,.jpeg,.png,.webp" onchange="previewImage(event)">
+                    {% endif %}
+                    <div class="form-text small text-muted">Formats: JPG, PNG, WEBP (Max 1MB).</div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function previewImage(event) {
+        const fileInput = event.target;
+        const output = document.getElementById('logoPreview');
+        const icon = document.getElementById('logoPreviewIcon');
+        
+        if(fileInput.files && fileInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                output.src = e.target.result;
+                output.classList.remove('d-none');
+                icon.classList.add('d-none');
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+        }
+    }
+</script>
+{% endblock %}

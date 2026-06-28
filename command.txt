@@ -1,0 +1,21 @@
+python manage.py process_subscriptions
+python manage.py seed_atomic_sections
+
+#checking Shell by generating codes in python file.
+exec(open('check_shell.py').read())
+python manage.py shell < check_shell.py
+
+
+১. .env ফাইল চেক করুন:
+নিশ্চিত করুন যে CLOUDFLARE_API_TOKEN এ কোনো স্পেস বা ইনভার্টেড কমা (') নেই।
+
+২. নতুন টোকেন জেনারেট করুন (সম্ভবত আগেরটায় পারমিশন মিসিং ছিল):
+Cloudflare ড্যাশবোর্ডে গিয়ে আগের টোকেনটি ডিলিট করে দিন এবং একদম হুবহু নিচের পারমিশনগুলো দিয়ে নতুন টোকেন বানান:
+
+    Zone -> Custom Hostnames -> Edit (এটি সবচেয়ে ইম্পরট্যান্ট)
+
+    Zone -> SSL and Certificates -> Edit
+
+    Zone -> Zone -> Read
+
+    Zone Resources: Include -> Specific zone -> আপনার মেইন ডোমেইন

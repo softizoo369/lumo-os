@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Builder: {{ page.title }} - Lumo OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid max-w-4xl mx-auto py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{% url 'lumo_sites:builder_dashboard' %}" class="text-decoration-none text-muted small mb-2 d-inline-block">
+                <i class="bi bi-arrow-left"></i> Back to Dashboard
+            </a>
+            <h3 class="fw-bold mb-0">{{ page.title }} <span class="badge bg-warning text-dark ms-2" style="font-size: 0.5em;">DRAFT v{{ draft_revision.version_number }}</span></h3>
+            <p class="text-muted small">Manage the sections and content for this page.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <form action="{% url 'lumo_sites:publish_action' revision_id=draft_revision.id %}" method="POST" onsubmit="return confirm('Push these changes live?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-dark fw-bold rounded-pill px-4 shadow-sm">
+                    🚀 Publish Live
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sections List -->
+    {% if sections %}
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+            <div class="list-group list-group-flush">
+                {% for section in sections %}
+                <div class="list-group-item px-4 py-4 d-flex justify-content-between align-items-center bg-white hover-bg-light transition">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-light rounded p-2 text-muted fw-bold font-monospace border">
+                            #{{ section.sort_order }}
+                        </div>
+                        <div>
+                            <h5 class="fw-bold text-dark mb-0">{{ section.section_version.section.name }}</h5>
+                            <small class="text-muted text-uppercase" style="font-size:0.75rem; letter-spacing:1px;">{{ section.section_version.section.category }}</small>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        
+                        <!-- 🟢 SPRINT 4: Reorder Controls (Up/Down) -->
+                        <div class="btn-group border rounded-pill shadow-sm me-2">
+                            <form action="{% url 'lumo_sites:section_reorder' section_id=section.id direction='up' %}" method="POST" class="m-0">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-light rounded-start-pill text-muted hover-primary px-3" {% if forloop.first %}disabled{% endif %} title="Move Up">
+                                    <i class="bi bi-arrow-up"></i>
+                                </button>
+                            </form>
+                            <form action="{% url 'lumo_sites:section_reorder' section_id=section.id direction='down' %}" method="POST" class="m-0">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-light rounded-end-pill text-muted hover-primary border-start px-3" {% if forloop.last %}disabled{% endif %} title="Move Down">
+                                    <i class="bi bi-arrow-down"></i>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Edit Content Button -->
+                        <a href="{% url 'lumo_sites:edit_section' section_id=section.id %}" class="btn btn-outline-primary rounded-pill fw-bold px-4">
+                            <i class="bi bi-pencil-square me-1"></i> Edit
+                        </a>
+
+                        <!-- 🟢 SPRINT 4: Delete Control -->
+                        <form action="{% url 'lumo_sites:section_delete' section_id=section.id %}" method="POST" class="m-0" onsubmit="return confirm('Remove this section from the page?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger rounded-pill fw-bold px-3 ms-1" title="Delete Section">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                        
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Add Section Button -->
+        <div class="text-center py-3">
+            <button class="btn btn-primary rounded-pill fw-bold px-5 py-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#sectionLibraryModal">
+                <i class="bi bi-plus-lg me-1"></i> Add Another Section
+            </button>
+        </div>
+
+    {% else %}
+        <!-- 🟢 SPRINT 3: The Empty State -->
+        <div class="card border-0 shadow-sm rounded-4 text-center py-5">
+            <div class="card-body py-5">
+                <div class="display-1 text-muted mb-3"><i class="bi bi-layout-wtf"></i></div>
+                <h4 class="fw-bold">This page is completely empty</h4>
+                <p class="text-muted mb-4">Start building your page by adding a pre-designed section from the library.</p>
+                <button class="btn btn-primary rounded-pill fw-bold px-5 py-3 shadow" data-bs-toggle="modal" data-bs-target="#sectionLibraryModal">
+                    <i class="bi bi-plus-circle me-2"></i> Add Your First Section
+                </button>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- 🟢 SPRINT 3: Section Library Modal -->
+<div class="modal fade" id="sectionLibraryModal" tabindex="-1" aria-labelledby="sectionLibraryModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header bg-light border-0 px-4 py-3">
+        <h5 class="modal-title fw-bold" id="sectionLibraryModalLabel"><i class="bi bi-collection me-2 text-primary"></i> Section Library</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="list-group list-group-flush">
+            {% for version in atomic_versions %}
+            <div class="list-group-item px-4 py-3 d-flex justify-content-between align-items-center hover-bg-light">
+                <div>
+                    <h6 class="fw-bold mb-1">{{ version.section.name }}</h6>
+                    <small class="text-muted text-uppercase" style="font-size:0.7rem; letter-spacing: 0.5px;">{{ version.section.category }}</small>
+                </div>
+                <form action="{% url 'lumo_sites:section_add' revision_id=draft_revision.id version_id=version.id %}" method="POST" class="m-0">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-dark rounded-pill fw-bold px-3">
+                        Add <i class="bi bi-arrow-right ms-1"></i>
+                    </button>
+                </form>
+            </div>
+            {% empty %}
+            <div class="p-5 text-center text-muted">
+                <i class="bi bi-exclamation-circle fs-2"></i>
+                <p class="mt-2">No sections available in the global library.</p>
+            </div>
+            {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

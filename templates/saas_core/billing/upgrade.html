@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}Upgrade Plan | {{ current_workspace.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5 max-w-7xl">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold text-dark mb-3">Choose the perfect plan for your business</h2>
+        <p class="text-muted fs-5">Scale your operations with Lumo OS. No hidden fees.</p>
+        
+        <!-- Monthly / Yearly Toggle -->
+        <div class="d-inline-flex bg-white rounded-pill p-1 border shadow-sm mt-4">
+            <button class="btn btn-primary rounded-pill px-4 fw-bold" id="btn-monthly" onclick="toggleBilling('MONTHLY')">Monthly</button>
+            <button class="btn btn-white rounded-pill px-4 fw-bold text-muted" id="btn-yearly" onclick="toggleBilling('YEARLY')">
+                Yearly <span class="badge bg-success bg-opacity-10 text-success ms-1 rounded-pill">Save 20%</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        {% for plan in plans %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100 position-relative transition-hover" style="transition: transform 0.3s, box-shadow 0.3s;">
+                <div class="card-body p-4 p-xl-5 d-flex flex-column">
+                    <h4 class="fw-bold text-dark mb-1">{{ plan.name }}</h4>
+                    <p class="text-muted small mb-4">{{ plan.description }}</p>
+
+                    <!-- Dynamic Prices -->
+                    <div class="price-container mb-4">
+                        {% for price in plan.prices.all %}
+                        <div class="price-block price-{{ price.billing_cycle }}" style="{% if price.billing_cycle != 'MONTHLY' %}display: none;{% endif %}">
+                            <h2 class="fw-bold text-dark mb-0 d-flex align-items-center">
+                                {{ price.currency.symbol|default:price.currency.code }}<span class="display-4 fw-bold">{{ price.amount|floatformat:0 }}</span>
+                            </h2>
+                            <span class="text-muted small">/ {{ price.get_billing_cycle_display|lower }}</span>
+                            <a href="{% url 'saas_core:checkout_summary' price.id %}" class="btn btn-{% if forloop.parentloop.counter == 2 %}primary{% else %}light border{% endif %} w-100 rounded-pill fw-bold mt-4 py-2">
+                                Choose {{ plan.name }}
+                            </a>
+                        </div>
+                        {% endfor %}
+                        
+                        <!-- Fallback if no price set -->
+                        {% if not plan.prices.all %}
+                        <div class="text-muted fst-italic mt-3 mb-4">Pricing not configured.</div>
+                        <button class="btn btn-light border w-100 rounded-pill fw-bold mt-2" disabled>Unavailable</button>
+                        {% endif %}
+                    </div>
+
+                    <!-- Limits from SubscriptionPlan model (Phase 7.1) -->
+                    <!-- Dynamic Features from PlanFeature model -->
+                    <ul class="list-unstyled mb-0 mt-auto text-start px-3">
+                        {% for pf in plan.plan_features.all %}
+                        <li class="mb-3 d-flex align-items-center">
+                            <i class="bi bi-check-circle-fill text-primary me-2"></i> 
+                            <span>
+                                {% if pf.limit %}<strong>{{ pf.limit }}</strong>{% endif %}
+                                {{ pf.feature.name }}
+                            </span>
+                        </li>
+                        {% empty %}
+                        <li class="mb-3 text-muted small d-flex justify-content-center">
+                            <i class="bi bi-stars me-2"></i> <span>Full access to Lumo OS core features</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    function toggleBilling(cycle) {
+        // Toggle Active Button Styles
+        if(cycle === 'MONTHLY') {
+            document.getElementById('btn-monthly').className = 'btn btn-primary rounded-pill px-4 fw-bold';
+            document.getElementById('btn-yearly').className = 'btn btn-white rounded-pill px-4 fw-bold text-muted';
+        } else {
+            document.getElementById('btn-yearly').className = 'btn btn-primary rounded-pill px-4 fw-bold';
+            document.getElementById('btn-monthly').className = 'btn btn-white rounded-pill px-4 fw-bold text-muted';
+        }
+
+        // Toggle Price Displays
+        document.querySelectorAll('.price-block').forEach(block => {
+            block.style.display = 'none'; // Hide all
+        });
+        document.querySelectorAll(`.price-${cycle}`).forEach(block => {
+            block.style.display = 'block'; // Show matched
+        });
+    }
+</script>
+{% endblock %}

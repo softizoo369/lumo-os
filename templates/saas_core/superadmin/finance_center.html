@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% block title %}Finance Center | Superadmin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-lg-5">
+    {% include 'components/layouts/page_header.html' with title="Finance Operations Center" show_help=False breadcrumbs='<li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted"><i class="bi bi-house"></i> Home</a></li><li class="breadcrumb-item active fw-semibold">Finance Center</li>' %}
+
+    <ul class="nav nav-pills mb-4 pb-2 border-bottom" id="pills-tab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active rounded-pill px-4 fw-medium" data-bs-toggle="pill" data-bs-target="#taxes" type="button"><i class="bi bi-percent me-1"></i> Tax Engine</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill px-4 fw-medium ms-2" data-bs-toggle="pill" data-bs-target="#gateways" type="button"><i class="bi bi-credit-card me-1"></i> Gateways</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill px-4 fw-medium ms-2" data-bs-toggle="pill" data-bs-target="#accounts" type="button"><i class="bi bi-bank me-1"></i> Accounts</button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="taxes">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-dark">Active Tax Configurations</h5>
+                <a href="{% url 'saas_core:tax_rate_create' %}" class="btn btn-primary btn-sm rounded-pill px-3"><i class="bi bi-plus-lg"></i> Add Tax Rate</a>
+            </div>
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-muted small text-uppercase">
+                        <tr><th class="ps-4">Tax Name</th><th>Country</th><th>Rate (%)</th><th>Effective Range</th><th>Status</th><th class="text-end pe-4">Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for tax in taxes %}
+                        <tr class="{% if not tax.is_active %}opacity-50 bg-light{% endif %}">
+                            <td class="ps-4 fw-bold text-dark">{{ tax.name }}</td>
+                            <td>{{ tax.country.name|default:"Global" }}</td>
+                            <td class="fw-bold text-primary">{{ tax.percentage }}%</td>
+                            <td class="small">{{ tax.effective_from|date:"M d, Y" }} - {{ tax.effective_to|date:"M d, Y"|default:"Present" }}</td>
+                            <td>{% if tax.is_active %}<span class="badge bg-success bg-opacity-10 text-success">Active</span>{% else %}<span class="badge bg-secondary bg-opacity-10 text-secondary">Archived</span>{% endif %}</td>
+                            <td class="text-end pe-4">
+                                <a href="{% url 'saas_core:tax_rate_update' tax.id %}" class="btn btn-sm btn-light text-primary me-1"><i class="bi bi-pencil-square"></i></a>
+                                <form action="{% url 'saas_core:tax_rate_toggle' tax.id %}" method="POST" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-light {% if tax.is_active %}text-danger{% else %}text-success{% endif %}">
+                                        <i class="bi {% if tax.is_active %}bi-archive-fill{% else %}bi-check-circle-fill{% endif %}"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="gateways">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-dark">Configured Gateways</h5>
+                <a href="{% url 'saas_core:payment_gateway_create' %}" class="btn btn-primary btn-sm rounded-pill px-3"><i class="bi bi-plus-lg"></i> Add Gateway</a>
+            </div>
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-muted small text-uppercase">
+                        <tr><th class="ps-4">Gateway Name</th><th>System Code</th><th>Status</th><th class="text-end pe-4">Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for gateway in gateways %}
+                        <tr class="{% if not gateway.is_active %}opacity-50 bg-light{% endif %}">
+                            <td class="ps-4 fw-bold text-dark">{{ gateway.name }}</td>
+                            <td><code>{{ gateway.code }}</code></td>
+                            <td>{% if gateway.is_active %}<span class="badge bg-success bg-opacity-10 text-success">Active</span>{% else %}<span class="badge bg-secondary bg-opacity-10 text-secondary">Archived</span>{% endif %}</td>
+                            <td class="text-end pe-4">
+                                <a href="{% url 'saas_core:payment_gateway_update' gateway.id %}" class="btn btn-sm btn-light text-primary me-1"><i class="bi bi-pencil-square"></i></a>
+                                <form action="{% url 'saas_core:payment_gateway_toggle' gateway.id %}" method="POST" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-light {% if gateway.is_active %}text-danger{% else %}text-success{% endif %}">
+                                        <i class="bi {% if gateway.is_active %}bi-archive-fill{% else %}bi-check-circle-fill{% endif %}"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="accounts">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-dark">Receiving Accounts</h5>
+                <a href="{% url 'saas_core:payment_account_create' %}" class="btn btn-primary btn-sm rounded-pill px-3"><i class="bi bi-plus-lg"></i> Add Account</a>
+            </div>
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-muted small text-uppercase">
+                        <tr><th class="ps-4">Gateway</th><th>Account Name</th><th>Account Number (Masked)</th><th>Status</th><th class="text-end pe-4">Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for account in accounts %}
+                        <tr class="{% if not account.is_active %}opacity-50 bg-light{% endif %}">
+                            <td class="ps-4 fw-bold text-dark">{{ account.gateway.name }}</td>
+                            <td class="fw-medium">{{ account.account_name }}</td>
+                            <td><code class="text-dark bg-light px-2 py-1 rounded">&bull;&bull;&bull;&bull; {{ account.account_number|slice:"-4:" }}</code></td>
+                            <td>{% if account.is_active %}<span class="badge bg-success bg-opacity-10 text-success">Active</span>{% else %}<span class="badge bg-secondary bg-opacity-10 text-secondary">Archived</span>{% endif %}</td>
+                            <td class="text-end pe-4">
+                                <a href="{% url 'saas_core:payment_account_update' account.id %}" class="btn btn-sm btn-light text-primary me-1"><i class="bi bi-pencil-square"></i></a>
+                                <form action="{% url 'saas_core:payment_account_toggle' account.id %}" method="POST" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-light {% if account.is_active %}text-danger{% else %}text-success{% endif %}">
+                                        <i class="bi {% if account.is_active %}bi-archive-fill{% else %}bi-check-circle-fill{% endif %}"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

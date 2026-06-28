@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice - {{ invoice.invoice_number }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 15mm;
+        }
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #1f2937;
+            font-size: 11px;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        /* Header Section */
+        .header-table {
+            margin-bottom: 25px;
+        }
+        .brand-logo {
+            font-size: 26px;
+            font-weight: 900;
+            color: #000;
+            letter-spacing: -1px;
+        }
+        .invoice-title {
+            font-size: 28px;
+            font-weight: 300;
+            color: #6b7280;
+            text-align: right;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .meta-table td {
+            padding: 4px 0;
+            vertical-align: top;
+        }
+        .meta-label {
+            color: #6b7280;
+            font-weight: bold;
+            font-size: 10px;
+            text-transform: uppercase;
+            width: 90px;
+        }
+        /* Status Badge */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+        .badge-PAID { background-color: #d1fae5; color: #065f46; border: 1px solid #34d399; }
+        .badge-DRAFT { background-color: #f3f4f6; color: #374151; border: 1px solid #d1d5db; }
+        .badge-ISSUED { background-color: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+        .badge-REFUNDED { background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+        /* Address Block */
+        .address-box {
+            background-color: #f9fafb;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 30px;
+        }
+        .address-title {
+            font-size: 10px;
+            font-weight: 800;
+            color: #9ca3af;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+        
+        /* Line Items */
+        .line-items th {
+            background-color: #111827;
+            color: #ffffff;
+            font-size: 10px;
+            text-transform: uppercase;
+            padding: 10px;
+            text-align: left;
+        }
+        .line-items td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: middle;
+        }
+        .text-right { text-align: right !important; }
+        
+        /* Financial Summary */
+        .summary-table {
+            width: 40%;
+            float: right;
+            margin-top: 15px;
+        }
+        .summary-table td {
+            padding: 6px 10px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .grand-total {
+            font-size: 16px;
+            font-weight: 900;
+            color: #111827;
+            border-top: 2px solid #111827 !important;
+            padding-top: 10px !important;
+        }
+        
+        /* Payment & Verification Block */
+        .footer-blocks {
+            clear: both;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+        .info-box {
+            font-size: 10px;
+            color: #4b5563;
+        }
+        .info-box strong { color: #111827; }
+        
+        /* Verification Code */
+        .verify-box {
+            background-color: #f3f4f6;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 9px;
+            text-align: center;
+            margin-top: 20px;
+            border: 1px dashed #d1d5db;
+        }
+    </style>
+</head>
+<body>
+
+    <table class="header-table">
+        <tr>
+            <td style="width: 50%; vertical-align: top;">
+                <div class="brand-logo">LUMO OS</div>
+                <div style="font-size: 10px; color: #6b7280; margin-top: 4px;">Enterprise Business Platform</div>
+            </td>
+            <td style="width: 50%; vertical-align: top; text-align: right;">
+                <div class="invoice-title">INVOICE</div>
+            </td>
+        </tr>
+    </table>
+
+    <table style="margin-bottom: 25px;">
+        <tr>
+            <td style="width: 60%;">
+                <table class="meta-table">
+                    <tr><td class="meta-label">Invoice No:</td><td><strong>{{ invoice.invoice_number }}</strong></td></tr>
+                    <tr><td class="meta-label">Issue Date:</td><td>{{ invoice.issued_at|default:invoice.created_at|date:"d M Y" }}</td></tr>
+                    <tr><td class="meta-label">Due Date:</td><td>{{ invoice.due_date|date:"d M Y" }}</td></tr>
+                    <tr><td class="meta-label">Billing Cycle:</td><td>{{ invoice.order.snapshot_billing_cycle|default:"One-Time" }}</td></tr>
+                </table>
+            </td>
+            <td style="width: 40%; text-align: right; vertical-align: top;">
+                <table class="meta-table" style="float: right;">
+                    <tr><td class="meta-label text-right" style="width: auto; padding-right: 15px;">Currency:</td><td><strong>{{ invoice.snapshot_display_currency }}</strong></td></tr>
+                    <tr>
+                        <td class="meta-label text-right" style="padding-right: 15px;">Status:</td>
+                        <td><span class="badge badge-{{ invoice.status }}">{{ invoice.status }}</span></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <table>
+        <tr>
+            <td style="width: 48%; padding-right: 2%;">
+                <div class="address-box">
+                    <div class="address-title">From (Vendor)</div>
+                    <strong>Lumo OS Inc.</strong><br>
+                    Level 4, Tech Park Building<br>
+                    Dhaka, Bangladesh<br><br>
+                    <strong>Email:</strong> billing@lumoos.com<br>
+                    <strong>Web:</strong> www.lumoos.com<br>
+                    <strong>VAT No:</strong> BIN-000012345-VAT
+                </div>
+            </td>
+            <td style="width: 48%; padding-left: 2%;">
+                <div class="address-box">
+                    <div class="address-title">Bill To (Customer)</div>
+                    <strong>{{ invoice.snapshot_company_name }}</strong><br>
+                    Workspace: {{ invoice.workspace.name }}<br>
+                    {% if invoice.snapshot_billing_address %}{{ invoice.snapshot_billing_address }}<br>{% endif %}
+                    <br>
+                    <strong>Email:</strong> {{ invoice.snapshot_billing_email }}<br>
+                    {% if invoice.snapshot_tax_id %}
+                    <strong>{{ invoice.snapshot_tax_type|default:"Tax ID" }}:</strong> {{ invoice.snapshot_tax_id }}
+                    {% endif %}
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    {% if invoice.order %}
+    <div style="margin-bottom: 20px; font-size: 11px; padding: 10px; background: #fffbeb; border-left: 3px solid #f59e0b;">
+        <strong>Subscription Plan:</strong> {{ invoice.order.snapshot_plan_name }} | 
+        <strong>Cycle:</strong> {{ invoice.order.snapshot_billing_cycle|title }}
+        {% if invoice.workspace.subscription.current_period_start %}
+        | <strong>Period:</strong> {{ invoice.workspace.subscription.current_period_start|date:"d M Y" }} to {{ invoice.workspace.subscription.current_period_end|date:"d M Y" }}
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <table class="line-items">
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th style="width: 10%; text-align: center;">Qty</th>
+                <th class="text-right" style="width: 20%;">Unit Price</th>
+                <th class="text-right" style="width: 20%;">Total Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in invoice.line_items.all %}
+            <tr>
+                <td><strong>{{ item.description }}</strong></td>
+                <td style="text-align: center;">{{ item.quantity }}</td>
+                <td class="text-right">{{ invoice.snapshot_display_currency }} {{ item.unit_price }}</td>
+                <td class="text-right">{{ invoice.snapshot_display_currency }} {{ item.amount }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" style="text-align: center; color: #9ca3af;">No items found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div>
+        <table class="summary-table">
+            <tr>
+                <td class="meta-label">Subtotal</td>
+                <td class="text-right">{{ invoice.snapshot_display_currency }} {{ invoice.subtotal }}</td>
+            </tr>
+            <tr>
+                <td class="meta-label">Tax / VAT</td>
+                <td class="text-right">{{ invoice.snapshot_display_currency }} {{ invoice.tax_amount }}</td>
+            </tr>
+            <tr>
+                <td class="meta-label grand-total">Grand Total</td>
+                <td class="text-right grand-total">{{ invoice.snapshot_display_currency }} {{ invoice.total_amount }}</td>
+            </tr>
+            <tr>
+                <td class="meta-label" style="color: #059669;">Amount Paid</td>
+                <td class="text-right" style="color: #059669;">{{ invoice.snapshot_display_currency }} {{ invoice.amount_paid }}</td>
+            </tr>
+            <tr>
+                <td class="meta-label" style="color: #dc2626;">Outstanding</td>
+                <td class="text-right" style="color: #dc2626;">
+                    {% if invoice.status == 'PAID' %}
+                        {{ invoice.snapshot_display_currency }} 0.00
+                    {% else %}
+                        {{ invoice.snapshot_display_currency }} {{ invoice.total_amount }}
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <table class="footer-blocks">
+        <tr>
+            <td style="width: 50%; vertical-align: top;">
+                <div class="address-title">Payment Details</div>
+                <div class="info-box">
+                    {% if invoice.order.transaction and invoice.status == 'PAID' %}
+                        <strong>Method / Gateway:</strong> {{ invoice.order.transaction.gateway.name|default:"Automated System" }}<br>
+                        <strong>Transaction ID:</strong> {{ invoice.order.transaction.transaction_id }}<br>
+                        <strong>Paid On:</strong> {{ invoice.paid_at|date:"d M Y, h:i A" }} UTC<br>
+                        <strong>Sender Details:</strong> {{ invoice.order.transaction.sender_account_number }}
+                    {% else %}
+                        <em>No verified payment transaction found for this invoice.</em>
+                    {% endif %}
+                </div>
+            </td>
+            <td style="width: 50%; vertical-align: top; text-align: right;">
+                <div class="address-title" style="text-align: right;">Audit & Legal Metadata</div>
+                <div class="info-box">
+                    <strong>Generated On:</strong> {% now "d M Y, h:i A" %} UTC<br>
+                    <strong>Generated By:</strong> Lumo OS System Automation<br>
+                    <strong>Record ID:</strong> {{ invoice.id }}
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="verify-box">
+        <strong>TO VERIFY THE AUTHENTICITY OF THIS INVOICE, VISIT:</strong><br>
+        <span style="color: #2563eb;">https://app.lumoos.com/verify/invoice/{{ invoice.public_token }}</span>
+    </div>
+
+    <div style="text-align: center; margin-top: 20px; font-size: 10px; color: #9ca3af;">
+        Thank you for doing business with Lumo OS. This is a computer-generated document and requires no physical signature.
+    </div>
+
+</body>
+</html>

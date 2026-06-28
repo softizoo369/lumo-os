@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} | Superadmin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{% url 'saas_core:dashboard_home' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'saas_core:superadmin_plan_list' %}">Pricing Catalog</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
+                </ol>
+            </nav>
+            <h3 class="mb-0 text-gray-800 fw-bold">{{ title }}</h3>
+        </div>
+        <a href="{% url 'saas_core:superadmin_plan_list' %}" class="btn btn-sm btn-light border">
+            <i class="bi bi-arrow-left me-1"></i> Back to Catalog
+        </a>
+    </div>
+
+    <form method="POST" class="needs-validation" novalidate>
+        {% csrf_token %}
+        
+        {% if form.errors %}
+        <div class="alert alert-danger border-0 shadow-sm mb-4 rounded-3">
+            <div class="fw-bold mb-1"><i class="bi bi-exclamation-triangle-fill me-2"></i> Please correct the errors below:</div>
+            <ul class="mb-0 small">
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}<li><strong>{{ field|title }}:</strong> {{ error }}</li>{% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <div class="row">
+            <!-- LEFT COLUMN -->
+            <div class="col-lg-7">
+                
+                <!-- Card 1: Identity & Display -->
+                <div class="card border-0 shadow-sm mb-4 rounded-4 p-4">
+                    <h5 class="card-title fw-bold text-dark mb-3"><i class="bi bi-card-text me-2 text-primary"></i>Plan Identity</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-muted">Plan Name</label>
+                            {{ form.name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-muted">Plan Code (Unique ID)</label>
+                            {{ form.code }}
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label small fw-semibold text-muted">Description</label>
+                            {{ form.description }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold text-muted">Display Order (Sort)</label>
+                            {{ form.sort_order }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Pricing Engine -->
+                <div class="card border-0 shadow-sm mb-4 rounded-4 p-4 border-start border-primary border-4">
+                    <h5 class="card-title fw-bold text-dark mb-1"><i class="bi bi-currency-exchange me-2 text-primary"></i>Pricing Configuration</h5>
+                    <p class="text-muted small mb-4">Set up immutable pricing matrices.</p>
+                    
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold text-dark">Base Currency</label>
+                            {{ form.currency }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-dark">Monthly Rate</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light fw-medium">/mo</span>
+                                {{ form.monthly_price }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-dark">Yearly Rate</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light fw-medium">/yr</span>
+                                {{ form.yearly_price }}
+                            </div>
+                            <small class="text-muted x-small d-block mt-1">Leave 0.00 to disable yearly option.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3: Resource Quotas -->
+                <div class="card border-0 shadow-sm mb-4 rounded-4 p-4">
+                    <h5 class="card-title fw-bold text-dark mb-3"><i class="bi bi-sliders me-2 text-primary"></i>Resource Limits (Quotas)</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-muted">Max Team Users</label>
+                            {{ form.max_users }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-muted">Max Companies/Entities</label>
+                            {{ form.max_companies }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-muted">Max Customers</label>
+                            {{ form.max_customers }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-muted">Max Cloud Storage (MB)</label>
+                            {{ form.max_storage_mb }}
+                        </div>
+                    </div>
+                </div>
+                <div class="card border-0 shadow-sm mb-4 rounded-4 p-4 border-start border-success border-4" style="background-color: #f8fff9;">
+                    <h5 class="card-title fw-bold text-dark mb-1"><i class="bi bi-grid-3x3-gap-fill me-2 text-success"></i>Unlocked System Modules</h5>
+                    <p class="text-muted small mb-3">Select which premium features/modules are accessible under this plan.</p>
+                    
+                    <div class="row g-3">
+                        {% for checkbox in form.features %}
+                        <div class="col-md-6">
+                            <div class="form-check p-3 bg-white rounded-3 shadow-sm border border-success border-opacity-25 d-flex align-items-center gap-2 transition-hover" style="cursor: pointer;">
+                                {{ checkbox.tag }}
+                                <label class="form-check-label fw-bold text-dark mb-0 ms-1" style="cursor: pointer;" for="{{ checkbox.id_for_label }}">
+                                    {{ checkbox.choice_label }}
+                                </label>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12">
+                            <div class="alert alert-warning border-0 small mb-0">
+                                <i class="bi bi-info-circle-fill me-1"></i> No features registered yet. Add them in the <strong>Module Registry</strong>.
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div class="col-lg-5">
+                
+                <!-- Card 4: Visibility & Sales Strategy -->
+                <div class="card border-0 shadow-sm mb-4 rounded-4 p-4">
+                    <h5 class="card-title fw-bold text-dark mb-4"><i class="bi bi-eye-fill me-2 text-primary"></i>Visibility & Strategy</h5>
+                    
+                    <div class="form-check form-switch mb-3 p-0 d-flex justify-content-between align-items-center border-bottom pb-3">
+                        <div>
+                            <label class="form-check-label fw-bold text-dark mb-0" for="{{ form.is_public.id_for_label }}">Publicly Visible</label>
+                            <small class="text-muted d-block x-small">Show this plan on the public pricing page.</small>
+                        </div>
+                        {{ form.is_public }}
+                    </div>
+
+                    <div class="form-check form-switch mb-3 p-0 d-flex justify-content-between align-items-center border-bottom pb-3">
+                        <div>
+                            <label class="form-check-label fw-bold text-dark mb-0" for="{{ form.is_popular.id_for_label }}">Mark as "Most Popular"</label>
+                            <small class="text-muted d-block x-small">Highlights this plan to drive conversions.</small>
+                        </div>
+                        {{ form.is_popular }}
+                    </div>
+
+                    <div class="form-check form-switch mb-3 p-0 d-flex justify-content-between align-items-center border-bottom pb-3">
+                        <div>
+                            <label class="form-check-label fw-bold text-dark mb-0" for="{{ form.allow_signup.id_for_label }}">Allow Direct Checkout</label>
+                            <small class="text-muted d-block x-small">Users can pay directly without admin approval.</small>
+                        </div>
+                        {{ form.allow_signup }}
+                    </div>
+
+                    <div class="form-check form-switch p-0 d-flex justify-content-between align-items-center">
+                        <div>
+                            <label class="form-check-label fw-bold text-dark mb-0" for="{{ form.requires_sales_contact.id_for_label }}">Requires Sales Contact</label>
+                            <small class="text-muted d-block x-small">Hides price and triggers Enterprise Sales Flow.</small>
+                        </div>
+                        {{ form.requires_sales_contact }}
+                    </div>
+                </div>
+
+                <!-- Card 5: Lifecycle & States -->
+                <div class="card border-0 shadow-sm mb-4 rounded-4 p-4">
+                    <h5 class="card-title fw-bold text-dark mb-4"><i class="bi bi-diagram-3-fill me-2 text-primary"></i>Core Type & Lifecycle</h5>
+                    
+                    <div class="form-check form-switch mb-3 p-0 d-flex justify-content-between align-items-center border-bottom pb-3">
+                        <div>
+                            <label class="form-check-label fw-bold text-dark mb-0" for="{{ form.is_default.id_for_label }}">Is Default Plan</label>
+                            <small class="text-muted d-block x-small">Auto-assigned upon registration.</small>
+                        </div>
+                        {{ form.is_default }}
+                    </div>
+
+                    <div class="form-check form-switch mb-3 p-0 d-flex justify-content-between align-items-center border-bottom pb-3">
+                        <div>
+                            <label class="form-check-label fw-bold text-dark mb-0" for="{{ form.is_free_plan.id_for_label }}">Is Forever Free</label>
+                            <small class="text-muted d-block x-small">Marks this plan as a 100% free tier.</small>
+                        </div>
+                        {{ form.is_free_plan }}
+                    </div>
+
+                    <div class="form-check form-switch mb-3 p-0 d-flex justify-content-between align-items-center border-bottom pb-3">
+                        <div>
+                            <label class="form-check-label fw-bold text-dark mb-0" for="{{ form.is_trial_plan.id_for_label }}">Is Trial Plan</label>
+                            <small class="text-muted d-block x-small">Temporary plan that expires after N days.</small>
+                        </div>
+                        {{ form.is_trial_plan }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">Trial Allocation (Days)</label>
+                        {{ form.trial_days }}
+                    </div>
+
+                    <hr class="text-muted opacity-25">
+                    
+                    <div class="form-check form-switch p-0 d-flex justify-content-between align-items-center bg-primary bg-opacity-10 p-3 rounded-3 border border-primary border-opacity-25">
+                        <div>
+                            <label class="form-check-label fw-bold text-primary mb-0" for="{{ form.is_active.id_for_label }}">Active Status</label>
+                            <small class="text-primary d-block x-small opacity-75">If disabled, completely hidden from system.</small>
+                        </div>
+                        {{ form.is_active }}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Sticky Action Bar -->
+        <div class="card border-0 p-3 bg-white border-top d-flex flex-row justify-content-end gap-2 sticky-bottom shadow">
+            <a href="{% url 'saas_core:superadmin_plan_list' %}" class="btn btn-light border px-4 rounded-pill">Cancel</a>
+            <button type="submit" class="btn btn-dark px-4 fw-bold rounded-pill">
+                <i class="bi bi-floppy-fill me-1"></i> Save Plan Configuration
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

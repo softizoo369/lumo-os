@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Lumo OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid max-w-4xl mx-auto py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">{{ title }}</h2>
+            <p class="text-muted small">Manage page settings and Search Engine Optimization (SEO).</p>
+        </div>
+        <a href="{% url 'lumo_sites:builder_dashboard' %}" class="btn btn-light border btn-sm fw-bold rounded-pill px-4">
+            <i class="bi bi-arrow-left"></i> Back to Builder
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-body p-5">
+            <form method="POST" action=".">
+                {% csrf_token %}
+                
+                <h6 class="fw-bold border-bottom pb-2 mb-4"><i class="bi bi-file-earmark-text text-primary me-2"></i>Page Details</h6>
+                <div class="row g-4 mb-5">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">Page Title <span class="text-danger">*</span></label>
+                        {{ form.title }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">URL Slug <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted small">/</span>
+                            {{ form.slug }}
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold border-bottom pb-2 mb-4"><i class="bi bi-google text-success me-2"></i>SEO Metadata (Optional)</h6>
+                <div class="row g-4">
+                    <div class="col-12">
+                        <label class="form-label small fw-bold text-muted">SEO Meta Title</label>
+                        {{ form.seo_title }}
+                        <div class="form-text" style="font-size: 0.7rem;">Leave blank to use the Page Title automatically.</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-bold text-muted">SEO Meta Description</label>
+                        {{ form.seo_description }}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end mt-5 pt-3 border-top">
+                    <button type="submit" class="btn btn-primary fw-bold px-5 py-2 rounded-pill shadow-sm">
+                        Save Page Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

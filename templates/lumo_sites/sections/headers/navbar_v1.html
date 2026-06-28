@@ -1,0 +1,108 @@
+<!-- ============================================================
+     100x PREMIUM NAVBAR – Glassmorphism + Micro‑interactions
+     Fully Django‑ready: uses data.* and site_menu context.
+     ============================================================ -->
+
+<nav class="w-full {% if data.settings.is_sticky %}sticky top-0 z-50{% endif %} backdrop-blur-2xl transition-all duration-300 border-b border-white/10"
+     style="background-color: rgba(255, 255, 255, {{ data.settings.background_opacity|default:'0.07' }});
+            box-shadow: 0 8px 32px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.02);">
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-[72px]">
+
+        <!-- Logo / Branding -->
+        <div class="flex-shrink-0 group">
+            <a href="/" class="text-2xl font-extrabold tracking-tight transition-all duration-300 hover:scale-105 inline-block"
+               style="color: var(--primary-color, #2563eb); text-shadow: 0 2px 12px rgba(37,99,235,0.15);">
+                {{ data.branding.logo_text }}
+            </a>
+            <!-- subtle underline glow on hover -->
+            <span class="block h-0.5 w-0 group-hover:w-full transition-all duration-500 ease-out"
+                  style="background: linear-gradient(90deg, var(--primary-color, #2563eb), transparent);"></span>
+        </div>
+
+        <!-- Dynamic Menu Items (0 N+1 Queries) -->
+        <div class="hidden md:flex items-center space-x-1 lg:space-x-2">
+            {% for item in site_menu.items.all %}
+                <a href="{{ item.url }}"
+                   class="relative px-4 py-2 text-sm font-semibold text-gray-700/90 hover:text-gray-900 transition-all duration-200
+                          after:content-[''] after:absolute after:left-1/2 after:-translate-x-1/2 after:bottom-0
+                          after:w-0 after:h-[2px] after:rounded-full after:transition-all after:duration-300
+                          hover:after:w-4/5"
+                   style="color: rgba(0,0,0,0.75);
+                          after:background-color: var(--primary-color, #2563eb);">
+                    {{ item.label }}
+                </a>
+            {% empty %}
+                <!-- fallback items -->
+                <a href="#" class="relative px-4 py-2 text-sm font-semibold text-gray-700/90 hover:text-gray-900 transition-all
+                                  after:content-[''] after:absolute after:left-1/2 after:-translate-x-1/2 after:bottom-0
+                                  after:w-0 after:h-[2px] after:rounded-full after:transition-all after:duration-300
+                                  hover:after:w-4/5"
+                   style="color: rgba(0,0,0,0.75); after:background-color: var(--primary-color, #2563eb);">
+                    Home
+                </a>
+                <a href="#" class="relative px-4 py-2 text-sm font-semibold text-gray-700/90 hover:text-gray-900 transition-all
+                                  after:content-[''] after:absolute after:left-1/2 after:-translate-x-1/2 after:bottom-0
+                                  after:w-0 after:h-[2px] after:rounded-full after:transition-all after:duration-300
+                                  hover:after:w-4/5"
+                   style="color: rgba(0,0,0,0.75); after:background-color: var(--primary-color, #2563eb);">
+                    About
+                </a>
+                <a href="#" class="relative px-4 py-2 text-sm font-semibold text-gray-700/90 hover:text-gray-900 transition-all
+                                  after:content-[''] after:absolute after:left-1/2 after:-translate-x-1/2 after:bottom-0
+                                  after:w-0 after:h-[2px] after:rounded-full after:transition-all after:duration-300
+                                  hover:after:w-4/5"
+                   style="color: rgba(0,0,0,0.75); after:background-color: var(--primary-color, #2563eb);">
+                    Services
+                </a>
+            {% endfor %}
+        </div>
+
+        <!-- CTA Action Button -->
+        {% if data.cta_button.is_enabled %}
+        <div class="hidden md:flex items-center">
+            <a href="{{ data.cta_button.url }}"
+               class="inline-flex items-center text-sm font-bold text-white px-6 py-2.5 rounded-full
+                      shadow-md hover:shadow-xl transition-all duration-300 ease-out
+                      hover:-translate-y-1 hover:scale-[1.02] active:scale-95
+                      focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white/10"
+               style="background: linear-gradient(135deg, var(--primary-color, #2563eb), color-mix(in srgb, var(--primary-color, #2563eb) 70%, #000));
+                      box-shadow: 0 4px 16px rgba(37,99,235,0.3);">
+                <span class="relative z-10">{{ data.cta_button.label }}</span>
+                <!-- subtle glow overlay -->
+                <span class="absolute inset-0 rounded-full opacity-0 hover:opacity-100 transition-opacity duration-500"
+                      style="background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3), transparent 70%);"></span>
+            </a>
+        </div>
+        {% endif %}
+
+    </div>
+</nav>
+
+<!-- ========== Optional custom style (if you want extra polish) ========== -->
+<style>
+    /* ensures the underline pseudo‑element uses the primary colour */
+    nav a[style*="after:background-color"] {
+        --link-underline: var(--primary-color, #2563eb);
+    }
+    nav a[style*="after:background-color"]::after {
+        background-color: var(--link-underline);
+    }
+
+    /* subtle shimmer for the CTA – pure CSS, no extra DOM */
+    .cta-shimmer {
+        position: relative;
+        overflow: hidden;
+    }
+    .cta-shimmer::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.2) 50%, transparent 60%);
+        transform: translateX(-100%);
+        transition: transform 0.6s ease;
+    }
+    .cta-shimmer:hover::before {
+        transform: translateX(100%);
+    }
+</style>

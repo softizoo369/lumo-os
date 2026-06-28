@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Theme Editor - Lumo OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid max-w-4xl mx-auto py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-palette text-primary me-2"></i>Theme Editor</h2>
+            <p class="text-muted small">Customize the global appearance of your website.</p>
+        </div>
+        <a href="{% url 'lumo_sites:public_home' %}" target="_blank" class="btn btn-outline-dark btn-sm fw-bold rounded-pill px-4 shadow-sm">
+            View Live Site <i class="bi bi-arrow-up-right ms-1"></i>
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-body p-5">
+            <form method="POST" action=".">
+                {% csrf_token %}
+                
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold border-bottom pb-2 mb-3"><i class="bi bi-droplet-half text-primary me-2"></i>Brand Colors</h6>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">{{ form.primary_color.label }}</label>
+                            <div class="d-flex align-items-center gap-3">
+                                {{ form.primary_color }}
+                                <span class="small text-muted font-monospace">Hex Code</span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">{{ form.secondary_color.label }}</label>
+                            <div class="d-flex align-items-center gap-3">
+                                {{ form.secondary_color }}
+                                <span class="small text-muted font-monospace">Hex Code</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h6 class="fw-bold border-bottom pb-2 mb-3"><i class="bi bi-type text-primary me-2"></i>Typography & Style</h6>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">{{ form.heading_font.label }}</label>
+                            {{ form.heading_font }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">{{ form.body_font.label }}</label>
+                            {{ form.body_font }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">{{ form.border_radius.label }}</label>
+                            {{ form.border_radius }}
+                            <div class="form-text" style="font-size: 0.7rem;">Controls roundness (e.g., 8px).</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end mt-5 pt-3 border-top">
+                    <button type="submit" class="btn btn-dark fw-bold px-5 py-2 rounded-pill shadow-sm">
+                        Save Global Theme
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

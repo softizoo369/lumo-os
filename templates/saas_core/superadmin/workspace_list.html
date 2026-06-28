@@ -1,0 +1,378 @@
+{% extends 'base.html' %} 
+{% load static humanize %} 
+{% block title %}Tenant Manager  | {{ workspace.name }} - {{ global_config.site_name }}{% endblock %}
+{% block extra_head %}
+<link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    /* Exact match with company/list.html */
+    .table-custom th { background-color: #f8fafc; color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; padding: 10px 15px; }
+    .table-custom td { vertical-align: middle; font-size: 0.85rem; border-bottom: 1px solid #f1f5f9; padding: 8px 15px; }
+    .action-icon { color: #94a3b8; transition: all 0.2s; cursor: pointer; font-size: 1.1rem; }
+    .action-icon:hover { color: var(--primary-color); }
+    .action-icon.text-danger:hover { color: #dc2626 !important; }
+    .action-icon.text-warning:hover { color: #d97706 !important; }
+    .copy-wrapper { display: inline-flex; align-items: center; gap: 6px; padding: 2px 4px; border-radius: 4px; transition: background 0.2s; }
+    .copy-wrapper:hover { background-color: #f1f5f9; }
+    .copy-icon { font-size: 0.9rem; color: var(--primary-color); opacity: 0; transition: opacity 0.2s, transform 0.1s; cursor: pointer; }
+    .copy-wrapper:hover .copy-icon { opacity: 1; }
+    .copy-icon:active { transform: scale(0.8); }
+    .dataTables_paginate .pagination { margin-bottom: 0; }
+    .page-item.active .page-link { background-color: var(--primary-color); border-color: var(--primary-color); }
+    .select2-container .select2-selection--single { height: 32px; border-radius: 50px; border: 1px solid #cbd5e1; display: flex; align-items: center; }
+    .select2-container--default .select2-selection--single .select2-selection__arrow { top: 3px; right: 10px; }
+    .select2-container--default .select2-selection--single .select2-selection__rendered { font-size: 0.85rem; color: #475569; padding-left: 15px; }
+</style>
+{% endblock %} 
+
+{% block content %}
+<div class="container-fluid py-2 px-lg-4">
+    
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start mb-4 pb-3 border-bottom">
+        <div class="mb-3 mb-md-0">
+            <h3 class="fw-bold text-dark mb-1" style="letter-spacing: -0.5px;">Global Tenant Manager</h3>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0 small">
+                    <li class="breadcrumb-item"><a href="{% url 'saas_core:dashboard_home' %}" class="text-decoration-none text-muted"><i class="bi bi-house"></i> Home</a></li>
+                    <li class="breadcrumb-item active fw-semibold">Workspaces</li>
+                </ol>
+            </nav>
+        </div>
+        
+        <div class="d-flex flex-column align-items-md-end gap-2">
+            <div class="d-flex gap-2">
+                <button class="btn btn-light btn-sm rounded-pill px-3 shadow-sm border fw-medium text-muted hover-primary">
+                    <i class="bi bi-cloud-arrow-down me-1"></i> Import
+                </button>
+                <div class="dropdown">
+                    <button class="btn btn-light btn-sm rounded-pill px-3 shadow-sm border fw-medium text-muted hover-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-cloud-arrow-up me-1"></i> Export
+                    </button>
+                    <ul class="dropdown-menu shadow-sm border-0 rounded-3">
+                        <li><a class="dropdown-item small py-2" href="#"><i class="bi bi-file-earmark-excel text-success me-2 fs-6"></i> Export Excel</a></li>
+                        <li><a class="dropdown-item small py-2" href="#"><i class="bi bi-filetype-csv text-info me-2 fs-6"></i> Export CSV</a></li>
+                    </ul>
+                </div>
+                <a href="{% url 'identity:register' %}" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm fw-bold d-flex align-items-center">
+                    <i class="bi bi-plus-lg me-1"></i> Add Workspace
+                </a>
+            </div>
+            <div class="text-muted small d-flex align-items-center gap-2 mt-1">
+                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-1">
+                    <i class="bi bi-globe2"></i> Total Active Tenants: {{ workspaces.count }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Smart Filter Row (Matched with Company List) -->
+    <div class="card border-0 shadow-sm rounded-3 bg-light bg-opacity-50 mb-3">
+        <div class="card-body p-2 px-3">
+            <div class="row g-2 align-items-center">
+                <div class="col-auto">
+                    <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> Filters:</span>
+                </div>
+                <div class="col-md-3">
+                    <select id="colWorkspaceName" class="form-control select2-filter" data-placeholder="Select Workspace...">
+                        <option value=""></option>
+                        {% for ws in workspaces %}
+                            <option value="{{ ws.name }}">{{ ws.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select id="colDomain" class="form-control select2-filter" data-placeholder="Select Domain...">
+                        <option value=""></option>
+                        {% for ws in workspaces %}
+                            <option value="{{ ws.domain }}">{{ ws.domain }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select id="colStatus" class="form-select form-select-sm rounded-pill border-secondary" style="height: 32px;">
+                        <option value="">All Statuses</option>
+                        <option value="Active">Active</option>
+                        <option value="Suspended">Suspended</option>
+                    </select>
+                </div>
+                <div class="col-auto ms-auto d-flex gap-2">
+                    <button id="applyFilters" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm fw-bold">Apply Filter</button>
+                    <button id="clearFilters" class="btn btn-light btn-sm rounded-pill px-3 shadow-sm border text-muted">Clear</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DataTables UI -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-body p-0"> 
+            <table id="workspaceTable" class="table table-hover table-custom w-100 mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Workspace & Domain</th>
+                        <th>Owner Account</th>
+                        <th>Legal Entity Profile</th>
+                        <th>Status</th>
+                        <th>Registration Date</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ws in workspaces %}
+                    <tr class="{% if ws.status == 'SUSPENDED' %}bg-danger bg-opacity-10{% endif %}">
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary bg-opacity-10 text-primary rounded-2 d-flex align-items-center justify-content-center me-3 fw-bold border border-primary border-opacity-25" style="width: 38px; height: 38px; font-size: 1rem;">
+                                    {{ ws.name|make_list|first|upper }}
+                                </div>
+                                <div>
+                                    <span class="fw-bold text-dark d-block" style="font-size: 0.9rem;">{{ ws.name }}</span>
+                                    <small class="text-muted font-monospace"><i class="bi bi-globe2 text-secondary"></i> {{ ws.domain }}.lumo-os.com</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex flex-column align-items-start gap-1">
+                                <span class="fw-bold text-dark small">{{ ws.owner.first_name|default:"Workspace Admin" }}</span>
+                                {% if ws.owner.email %}
+                                    <div class="copy-wrapper">
+                                        <i class="bi bi-envelope text-muted small"></i>
+                                        <a href="mailto:{{ ws.owner.email }}" class="text-decoration-none text-dark small">{{ ws.owner.email }}</a>
+                                        <i class="bi bi-copy copy-icon ms-1" data-copy="{{ ws.owner.email }}" onclick="copySecureText(event, this.dataset.copy, this)" title="Copy Email"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            {% if ws.billing_profile.legal_company_name %}
+                                <span class="fw-medium text-dark small">{{ ws.billing_profile.legal_company_name }}</span>
+                                {% if ws.billing_profile.tax_registration_number %}
+                                    <div class="text-muted small" style="font-size: 0.7rem;"><i class="bi bi-shield-check text-success"></i> {{ ws.billing_profile.tax_registration_type }}: {{ ws.billing_profile.tax_registration_number }}</div>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill border border-warning border-opacity-25 px-2"><i class="bi bi-exclamation-circle me-1"></i>Incomplete Profile</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex flex-column gap-1 align-items-start">
+                                {% if ws.status == 'ACTIVE' %}
+                                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1"><i class="bi bi-circle-fill me-1" style="font-size: 0.4rem;"></i> Active</span>
+                                {% elif ws.status == 'SUSPENDED' %}
+                                    <span class="badge bg-danger text-white rounded-pill px-2 py-1"><i class="bi bi-slash-circle me-1"></i> Suspended</span>
+                                {% else %}
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-2 py-1">{{ ws.status }}</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="text-dark fw-medium small">{{ ws.created_at|naturaltime }}</div>
+                            <div class="text-muted" style="font-size: 0.7rem;">Created: {{ ws.created_at|date:"M d, Y" }}</div>
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="d-flex justify-content-end align-items-center gap-3">
+                                <!-- Edit Workspace -->
+                                <a href="{% url 'saas_core:superadmin_workspace_update' ws.id %}">
+                                    <i class="bi bi-pencil-square action-icon text-primary" title="Edit Workspace"></i>
+                                </a>
+                                <!-- Provision Custom Plan Button -->
+                                <button class="btn btn-link p-0 m-0 border-0 align-baseline me-2" title="Provision Custom Plan" onclick="openProvisionModal('{{ ws.id }}', '{{ ws.name|escapejs }}')">
+                                    <i class="bi bi-box-seam action-icon text-info"></i>
+                                </button>
+                                
+                                <!-- Suspend/Reactivate Toggle -->
+                                <form action="{% url 'saas_core:superadmin_workspace_toggle' ws.id %}" method="POST" class="d-inline m-0 p-0" onsubmit="return confirm('Are you sure you want to change the status of this workspace?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-link p-0 m-0 border-0 align-baseline" title="{% if ws.status == 'ACTIVE' %}Suspend Workspace{% else %}Reactivate Workspace{% endif %}">
+                                        <i class="bi {% if ws.status == 'ACTIVE' %}bi-pause-circle text-warning{% else %}bi-play-circle text-success{% endif %} action-icon"></i>
+                                    </button>
+                                </form>
+
+                                <!-- Delete Workspace -->
+                                <i class="bi bi-trash action-icon text-danger" title="Archive Workspace" onclick="openDeleteModal('{{ ws.id }}', '{{ ws.name|escapejs }}')"></i>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="text-muted my-4">
+                                <i class="bi bi-hdd-network fs-1 d-block mb-3 opacity-25"></i>
+                                <h6>No workspaces registered yet</h6>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg">
+            <div class="modal-body p-4 text-center">
+                <div class="text-danger mb-3">
+                    <i class="bi bi-exclamation-circle-fill" style="font-size: 3.5rem;"></i>
+                </div>
+                <h4 class="fw-bold text-dark">Archive Workspace?</h4>
+                <p class="text-muted small mb-4">You are about to archive <strong id="deleteModalWorkspaceName" class="text-dark"></strong>.<br>This restricts access but retains data.</p>
+                
+                <form id="deleteForm" method="POST" action="">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-center gap-2">
+                        <button type="button" class="btn btn-light border rounded-pill px-4 fw-medium" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">Yes, archive it</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Provisioning Modal -->
+<div class="modal fade" id="provisionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg">
+            <div class="modal-header bg-light border-bottom">
+                <h5 class="fw-bold mb-0"><i class="bi bi-box-seam text-primary me-2"></i>Provision Custom Plan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-muted small mb-4">You are directly assigning a plan to <strong id="provWsName" class="text-dark"></strong>. This bypasses payment gateways.</p>
+                <form id="provisionForm" method="POST" action="">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">Select Plan</label>
+                        <select name="plan_id" class="form-select" required>
+                            <option value="" disabled selected>Choose a plan...</option>
+                            {% for plan in plans %}
+                                <option value="{{ plan.id }}">{{ plan.name }} {% if not plan.is_public %}(Hidden){% endif %}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-dark">Billing Cycle</label>
+                        <select name="billing_cycle" class="form-select" required>
+                            <option value="MONTHLY" selected>Monthly</option>
+                            <option value="YEARLY">Yearly</option>
+                        </select>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary rounded-pill fw-bold">Provision & Activate</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openProvisionModal(wsId, wsName) {
+        document.getElementById('provWsName').textContent = wsName;
+        document.getElementById('provisionForm').action = `/superadmin/workspaces/${wsId}/provision/`;
+        var myModal = new bootstrap.Modal(document.getElementById('provisionModal'));
+        myModal.show();
+    }
+</script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    // Copy to Clipboard logic
+    function copySecureText(event, text, element) {
+        event.preventDefault(); 
+        event.stopPropagation();
+        
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed"; 
+        textArea.style.opacity = "0";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+            document.execCommand('copy');
+            element.classList.remove('bi-copy');
+            element.classList.add('bi-check2-circle', 'text-success');
+            setTimeout(() => {
+                element.classList.remove('bi-check2-circle', 'text-success');
+                element.classList.add('bi-copy');
+            }, 1500);
+        } catch (err) {
+            console.error("Copy failed", err);
+        }
+        document.body.removeChild(textArea);
+    }
+
+    // Modal logic
+    function openDeleteModal(wsId, wsName) {
+        document.getElementById('deleteModalWorkspaceName').textContent = wsName;
+        document.getElementById('deleteForm').action = `/superadmin/workspaces/${wsId}/delete/`;
+        var myModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        myModal.show();
+    }
+
+    function stripHtml(html) {
+        var tmp = document.createElement("DIV");
+        tmp.innerHTML = html;
+        return tmp.textContent || tmp.innerText || "";
+    }
+
+    $(document).ready(function() {
+        var table = $('#workspaceTable').DataTable({
+            pageLength: 10,
+            ordering: false,
+            dom: '<"row align-items-center"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rt<"row align-items-center p-3 border-top"<"col-sm-12 col-md-5 small text-muted"i><"col-sm-12 col-md-7 d-flex justify-content-end"p>>',
+            language: { 
+                info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                paginate: { previous: "<i class='bi bi-chevron-left'></i>", next: "<i class='bi bi-chevron-right'></i>" }
+            }
+        });
+
+        $('.dataTables_filter').hide();
+        $('.dataTables_length').hide();
+
+        $('.select2-filter').select2({
+            theme: "classic",
+            allowClear: true,
+            placeholder: function(){ return $(this).data('placeholder'); }
+        });
+
+        // Custom Search Logic for Workspace Table
+        $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+            if (settings.nTable.id !== 'workspaceTable') { return true; }
+            
+            var nameFilter = ($('#colWorkspaceName').val() || "").toLowerCase();
+            var domainFilter = ($('#colDomain').val() || "").toLowerCase();
+            var statusFilter = ($('#colStatus').val() || "").toLowerCase();
+
+            var rowNameDomain = stripHtml(data[0]).toLowerCase();
+            var rowStatus = stripHtml(data[3]).toLowerCase();
+
+            if (nameFilter && rowNameDomain.indexOf(nameFilter) === -1) { return false; }
+            if (domainFilter && rowNameDomain.indexOf(domainFilter) === -1) { return false; }
+            
+            if (statusFilter) {
+                var statusWords = rowStatus.split(/\s+/);
+                if (!statusWords.includes(statusFilter)) { return false; }
+            }
+            return true;
+        });
+
+        $('#applyFilters').on('click', function() { table.draw(); });
+        $('#clearFilters').on('click', function() {
+            $('.select2-filter').val(null).trigger('change');
+            $('#colStatus').val('');
+            table.draw();
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+{% block title %}Billing & Subscription | Lumo OS{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Consistent Premium Styling */
+    .premium-card { border: none; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); border-radius: 1rem; }
+    .transition-hover { transition: all 0.2s ease-in-out; }
+    .transition-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+    .stat-icon-box { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 0.75rem; font-size: 1.25rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-lg-4 max-w-7xl">
+    
+    <!-- Premium Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start mb-4 pb-3 border-bottom">
+        <div class="mb-3 mb-md-0">
+            <h3 class="fw-bold text-dark mb-1" style="letter-spacing: -0.5px;">Billing & Subscription</h3>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0 small">
+                    <li class="breadcrumb-item"><a href="{% url 'saas_core:dashboard_home' %}" class="text-decoration-none text-muted"><i class="bi bi-house"></i> Home</a></li>
+                    <li class="breadcrumb-item active fw-semibold">Billing</li>
+                </ol>
+            </nav>
+        </div>
+        
+        <div class="d-flex align-items-center mt-2 mt-md-0 gap-2">
+            <a href="{% url 'saas_core:subscription_plans' %}" class="btn btn-dark rounded-pill px-4 py-2 fw-bold shadow-sm transition-hover">
+                <i class="bi bi-stars text-warning me-1"></i> Upgrade Plan
+            </a>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show border-0 shadow-sm rounded-4" role="alert">
+                <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="row g-4 mb-4">
+        
+        <!-- Left: Current Subscription Overview -->
+        <div class="col-lg-8">
+            <div class="card premium-card h-100 overflow-hidden position-relative">
+                <!-- Background Decoration (Pushed to back) -->
+                <div class="position-absolute top-0 end-0 opacity-10 p-4" style="z-index: 0; pointer-events: none;">
+                    <i class="bi bi-credit-card-2-front" style="font-size: 8rem; color: var(--primary-color);"></i>
+                </div>
+
+                <div class="card-body p-4 p-md-5 position-relative" style="z-index: 1;">
+                    <h6 class="fw-bold text-muted text-uppercase mb-3" style="letter-spacing: 0.5px; font-size: 0.8rem;">Current Plan</h6>
+                    
+                    <!-- 🟢 Fixed Typography and Wrapping -->
+                    <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+                        <h2 class="fw-bolder text-dark mb-0" style="letter-spacing: -1px;">{{ subscription.plan.name|default:"Free Trial" }}</h2>
+                        <div>
+                            {% if subscription.status == 'ACTIVE' %}
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-2 fw-medium shadow-sm"><i class="bi bi-check-circle-fill me-1"></i> Active</span>
+                            {% elif subscription.status == 'TRIALING' %}
+                                <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 rounded-pill px-3 py-2 fw-medium shadow-sm"><i class="bi bi-clock-history me-1"></i> Trialing</span>
+                            {% elif subscription.status == 'PENDING_PAYMENT' %}
+                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 rounded-pill px-3 py-2 fw-medium shadow-sm" style="color: #d97706 !important;"><i class="bi bi-hourglass-split me-1"></i> Pending Payment</span>
+                            {% else %}
+                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-3 py-2 fw-medium shadow-sm"><i class="bi bi-exclamation-triangle-fill me-1"></i> {{ subscription.get_status_display }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mt-2">
+                        <div class="col-sm-6">
+                            <p class="text-muted small mb-1">Billing Cycle</p>
+                            <p class="fw-bold text-dark mb-0 fs-5">{{ subscription.snapshot_billing_cycle|default:"N/A"|title }}</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <p class="text-muted small mb-1">Renewal Date</p>
+                            <p class="fw-bold text-dark mb-0 fs-5">{{ subscription.current_period_end|date:"F d, Y" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Usage Summary -->
+        <!-- Right: Wallet & Usage Summary -->
+        <div class="col-lg-4 d-flex flex-column gap-4">
+            
+            <!-- 🟢 NEW: Premium Wallet Card -->
+            <div class="card premium-card bg-dark text-white border-0 shadow-sm position-relative overflow-hidden">
+                <!-- Background Icon Decoration -->
+                <div class="position-absolute opacity-10" style="right: -15px; bottom: -25px; z-index: 0; pointer-events: none;">
+                    <i class="bi bi-wallet2" style="font-size: 7.5rem;"></i>
+                </div>
+                
+                <div class="card-body p-4 position-relative" style="z-index: 1;">
+                    <h6 class="fw-bold text-white-50 text-uppercase mb-2" style="letter-spacing: 0.5px; font-size: 0.75rem;">Account Credit (Wallet)</h6>
+                    
+                    <div class="d-flex align-items-center mb-1">
+                        <h1 class="fw-bolder mb-0" style="letter-spacing: -1px;">
+                            {{ subscription.snapshot_currency_code|default:"$" }} {{ billing_profile.wallet_balance }}
+                        </h1>
+                    </div>
+                    
+                    <p class="small text-white-100 mb-0 mt-2" style="line-height: 1.3; font-size: 0.85rem;">
+                        <i class="bi bi-info-circle-fill text-primary me-1"></i> This balance will be automatically applied to your future invoices.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Workspace Limits -->
+            <div class="card premium-card flex-grow-1 bg-light border border-secondary border-opacity-10">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold text-dark text-uppercase mb-4" style="letter-spacing: 0.5px; font-size: 0.8rem;"><i class="bi bi-bar-chart-fill text-primary me-2"></i>Workspace Limits</h6>
+                    
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="stat-icon-box bg-white text-primary shadow-sm border me-3">
+                                <i class="bi bi-people-fill"></i>
+                            </div>
+                            <div>
+                                <p class="text-muted small mb-0 fw-medium">Users</p>
+                                <p class="fw-bold text-dark mb-0">Max {{ subscription.plan.max_users }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="stat-icon-box bg-white text-success shadow-sm border me-3">
+                                <i class="bi bi-building"></i>
+                            </div>
+                            <div>
+                                <p class="text-muted small mb-0 fw-medium">Companies</p>
+                                <p class="fw-bold text-dark mb-0">Max {{ subscription.plan.max_companies }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="stat-icon-box bg-white text-danger shadow-sm border me-3">
+                                <i class="bi bi-hdd-fill"></i>
+                            </div>
+                            <div>
+                                <p class="text-muted small mb-0 fw-medium">Storage</p>
+                                <p class="fw-bold text-dark mb-0">{{ subscription.plan.max_storage_mb }} MB</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 🧾 BILLING HISTORY & INVOICES TABLE -->
+    <!-- ========================================== -->
+    <div class="card premium-card overflow-hidden mt-4">
+        <div class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-dark" style="letter-spacing: -0.5px;"><i class="bi bi-receipt-cutoff text-primary me-2"></i>Billing History</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="text-uppercase text-muted small fw-bold py-3 ps-4" style="letter-spacing: 0.5px;">Invoice Number</th>
+                            <th class="text-uppercase text-muted small fw-bold py-3" style="letter-spacing: 0.5px;">Issued Date</th>
+                            <th class="text-uppercase text-muted small fw-bold py-3" style="letter-spacing: 0.5px;">Amount</th>
+                            <th class="text-uppercase text-muted small fw-bold py-3" style="letter-spacing: 0.5px;">Status</th>
+                            <th class="text-uppercase text-muted small fw-bold py-3 pe-4 text-end" style="letter-spacing: 0.5px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for invoice in invoices %}
+                        <tr>
+                            <td class="ps-4">
+                                <span class="fw-bold text-dark font-monospace">{{ invoice.invoice_number }}</span>
+                            </td>
+                            <td>
+                                <span class="text-muted fw-medium small">{{ invoice.created_at|date:"M d, Y" }}</span>
+                            </td>
+                            <td>
+                                <span class="fw-bold text-dark">{{ invoice.snapshot_display_currency }} {{ invoice.total_amount }}</span>
+                            </td>
+                            <td>
+                                {% if invoice.status == 'PAID' %}
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1 fw-medium"><i class="bi bi-check-circle-fill me-1"></i>Paid</span>
+                                {% elif invoice.status == 'DRAFT' %}
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill px-3 py-1 fw-medium"><i class="bi bi-clock me-1"></i>Draft</span>
+                                {% else %}
+                                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 rounded-pill px-3 py-1 fw-medium"><i class="bi bi-exclamation-circle-fill me-1"></i>{{ invoice.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="pe-4 text-end">
+                                <a href="{% url 'saas_core:download_invoice_pdf' invoice.id %}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill fw-bold shadow-sm transition-hover d-inline-flex align-items-center">
+                                    <i class="bi bi-file-earmark-pdf-fill me-2"></i> Download PDF
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                                    <i class="bi bi-inbox fs-3 text-muted"></i>
+                                </div>
+                                <h6 class="fw-bold text-dark mb-1">No Invoices Yet</h6>
+                                <p class="text-muted small mb-0">Your billing history will appear here once you make a payment.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} - Lumo OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-lg-5 max-w-4xl mx-auto">
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <h3 class="fw-bold text-dark mb-0"><i class="bi bi-puzzle-fill text-primary me-2"></i>{{ title|default:"Create New Component" }}</h3>
+        <a href="{% url 'lumo_sites:superadmin_section_list' %}" class="btn btn-light border rounded-pill px-4 fw-bold shadow-sm">
+            <i class="bi bi-arrow-left me-2"></i> Back
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-5">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="row g-4">
+                    {% for field in form %}
+                    <div class="col-12">
+                        <label class="form-label small fw-bold text-dark">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}
+                            <div class="form-text small text-muted">{{ field.help_text }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="mt-5 pt-4 border-top text-end">
+                    <button type="submit" class="btn btn-primary rounded-pill px-5 py-2.5 fw-bold shadow-sm">
+                        Save Component <i class="bi bi-check-circle-fill ms-2"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

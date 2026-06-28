@@ -1,0 +1,71 @@
+{% extends 'base.html' %} 
+
+{% block title %}Edit Gateway | Lumo OS{% endblock %} 
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-pencil-square text-primary me-2"></i>Update Integration</h3>
+            <p class="text-muted small mb-0">Update API credentials for <strong class="text-dark">{{ config.gateway.name }}</strong></p>
+        </div>
+        <a href="{% url 'saas_core:workspace_payment_settings' %}" class="btn btn-sm btn-light border">
+            <i class="bi bi-arrow-left me-1"></i> Back to List
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <form method="POST" class="card border-0 shadow-sm rounded-4 p-4">
+                {% csrf_token %}
+                
+                <div class="row g-3">
+                    <div class="col-12 d-none">
+                        {{ form.gateway }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-check form-switch bg-light p-2 rounded border d-flex justify-content-between align-items-center mb-0">
+                            <label class="form-check-label fw-bold text-dark mb-0 ms-2" for="id_is_active">Enable this Gateway</label>
+                            {{ form.is_active }}
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-check form-switch bg-warning bg-opacity-10 p-2 rounded border border-warning d-flex justify-content-between align-items-center mb-0">
+                            <label class="form-check-label fw-bold text-warning-emphasis mb-0 ms-2" for="id_is_test_mode">Sandbox / Test Mode</label>
+                            {{ form.is_test_mode }}
+                        </div>
+                    </div>
+
+                    <div class="col-12 mt-4">
+                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-shield-lock me-2"></i>API Credentials</h6>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-muted">API Key / Store ID</label>
+                        {{ form.api_key }}
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-muted">API Secret / Password</label>
+                        {{ form.api_secret }}
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold text-muted">Webhook Secret (Optional)</label>
+                        {{ form.webhook_secret }}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end border-top pt-3 mt-4 gap-2">
+                    <a href="{% url 'saas_core:workspace_payment_settings' %}" class="btn btn-light border fw-medium px-4 rounded-pill">Cancel</a>
+                    <button type="submit" class="btn btn-primary fw-medium px-4 rounded-pill shadow-sm">
+                        <i class="bi bi-check-circle-fill me-2"></i> Update Gateway
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

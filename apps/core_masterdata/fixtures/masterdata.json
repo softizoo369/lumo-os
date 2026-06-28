@@ -1,0 +1,58 @@
+[
+    {
+        "model": "core_masterdata.country",
+        "pk": "11111111-0000-0000-0000-000000000001",
+        "fields": {
+            "name": "Bangladesh", "iso2_code": "BD", "dial_code": "+880", "is_deleted": false,
+            "created_at": "2026-06-19T00:00:00Z", "updated_at": "2026-06-19T00:00:00Z"
+        }
+    },
+    {
+        "model": "core_masterdata.country",
+        "pk": "11111111-0000-0000-0000-000000000002",
+        "fields": {
+            "name": "United States", "iso2_code": "US", "dial_code": "+1", "is_deleted": false,
+            "created_at": "2026-06-19T00:00:00Z", "updated_at": "2026-06-19T00:00:00Z"
+        }
+    },
+    {
+        "model": "core_masterdata.currency",
+        "pk": "22222222-0000-0000-0000-000000000001",
+        "fields": {
+            "name": "Bangladeshi Taka", "code": "BDT", "symbol": "৳", "is_deleted": false,
+            "created_at": "2026-06-19T00:00:00Z", "updated_at": "2026-06-19T00:00:00Z"
+        }
+    },
+    {
+        "model": "core_masterdata.currency",
+        "pk": "22222222-0000-0000-0000-000000000002",
+        "fields": {
+            "name": "US Dollar", "code": "USD", "symbol": "$", "is_deleted": false,
+            "created_at": "2026-06-19T00:00:00Z", "updated_at": "2026-06-19T00:00:00Z"
+        }
+    },
+    {
+        "model": "core_masterdata.timezone",
+        "pk": "33333333-0000-0000-0000-000000000001",
+        "fields": {
+            "name": "Asia/Dhaka", "is_deleted": false,
+            "created_at": "2026-06-19T00:00:00Z", "updated_at": "2026-06-19T00:00:00Z"
+        }
+    },
+    {
+        "model": "core_masterdata.industry",
+        "pk": "44444444-0000-0000-0000-000000000001",
+        "fields": {
+            "name": "Information Technology", "is_deleted": false,
+            "created_at": "2026-06-19T00:00:00Z", "updated_at": "2026-06-19T00:00:00Z"
+        }
+    },
+    {
+        "model": "core_masterdata.industry",
+        "pk": "44444444-0000-0000-0000-000000000002",
+        "fields": {
+            "name": "E-Commerce & Retail", "is_deleted": false,
+            "created_at": "2026-06-19T00:00:00Z", "updated_at": "2026-06-19T00:00:00Z"
+        }
+    }
+]

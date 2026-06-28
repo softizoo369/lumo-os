@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% block title %}Complete Payment | {{ order.snapshot_plan_name }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Consistent Premium Styling */
+    .premium-card { border: none; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); border-radius: 1rem; }
+    .nav-pills-custom .nav-link { border-radius: 50rem; color: #64748b; font-weight: 600; padding: 0.6rem 1.5rem; transition: all 0.2s; }
+    .nav-pills-custom .nav-link.active { background-color: var(--primary-color); color: white; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); }
+    .nav-pills-custom .nav-link:hover:not(.active) { background-color: #f1f5f9; color: #0f172a; }
+    .form-control-premium { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 0.75rem 1rem; transition: all 0.2s; }
+    .form-control-premium:focus { background-color: #ffffff; border-color: var(--primary-color); box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
+    .border-dashed { border-style: dashed !important; border-width: 2px !important; border-color: #cbd5e1 !important; }
+    .upload-zone { transition: all 0.2s; cursor: pointer; }
+    .upload-zone:hover { background-color: #f1f5f9 !important; border-color: var(--primary-color) !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2 px-lg-4 max-w-7xl">
+    
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start mb-4 pb-3 border-bottom">
+        <div class="mb-3 mb-md-0">
+            <h3 class="fw-bold text-dark mb-1" style="letter-spacing: -0.5px;">Secure Checkout</h3>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0 small">
+                    <li class="breadcrumb-item"><a href="{% url 'saas_core:dashboard_home' %}" class="text-decoration-none text-muted"><i class="bi bi-house"></i> Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'saas_core:billing_dashboard' %}" class="text-decoration-none text-muted">Billing</a></li>
+                    <li class="breadcrumb-item active fw-semibold">Payment</li>
+                </ol>
+            </nav>
+        </div>
+        
+        <div class="d-flex align-items-center mt-2 mt-md-0">
+            <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 rounded-pill px-3 py-2 fw-medium shadow-sm" style="font-size: 0.85rem;">
+                <i class="bi bi-clock-history me-1"></i> Awaiting Payment
+            </span>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show border-0 shadow-sm rounded-4" role="alert">
+                <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="row g-4">
+        
+        <div class="col-lg-5">
+            <div class="card premium-card bg-primary bg-opacity-10 mb-4 border border-primary border-opacity-10">
+                <div class="card-body p-4 text-center">
+                    <h6 class="fw-bold text-primary text-uppercase mb-2" style="letter-spacing: 1px; font-size: 0.8rem;">Total Amount Due</h6>
+                    <h1 class="fw-bolder text-dark mb-0 display-5" style="letter-spacing: -1px;">{{ order.snapshot_currency_code }} {{ order.total_amount }}</h1>
+                    <p class="text-muted small mt-2 mb-0">For <span class="fw-bold text-dark">{{ order.snapshot_plan_name }}</span> ({{ order.snapshot_billing_cycle|title }})</p>
+                </div>
+            </div>
+
+            <div class="card premium-card mb-4">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold text-dark mb-4 text-uppercase" style="letter-spacing: 0.5px; font-size: 0.85rem;"><i class="bi bi-info-circle-fill text-primary me-2"></i>Manual Transfer Guide</h6>
+                    
+                    <div class="d-flex mb-4 align-items-start">
+                        <div class="bg-primary bg-opacity-10 text-primary fw-bold rounded-circle d-flex justify-content-center align-items-center flex-shrink-0 me-3" style="width: 28px; height: 28px; font-size: 0.8rem;">1</div>
+                        <div>
+                            <p class="fw-bold text-dark mb-1" style="font-size: 0.95rem;">Transfer the exact amount</p>
+                            <p class="text-muted small mb-0">Send exactly <strong>{{ order.total_amount }} {{ order.snapshot_currency_code }}</strong> to our official merchant accounts below.</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-light p-3 rounded-4 mb-4 border border-secondary border-opacity-10">
+                        <ul class="list-unstyled mb-0">
+                            {% for acc in accounts %}
+                            <li class="d-flex justify-content-between align-items-center mb-2 pb-2 {% if not forloop.last %}border-bottom border-secondary border-opacity-10{% endif %}">
+                                <span class="fw-medium text-dark small"><i class="bi bi-bank me-2 text-muted"></i>{{ acc.gateway.name }}</span>
+                                <span class="badge bg-white text-dark border px-2 py-1 font-monospace shadow-sm user-select-all">{{ acc.account_number }}</span>
+                            </li>
+                            {% empty %}
+                            <li class="text-muted small text-center py-2">No merchant accounts available currently.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    
+                    <div class="d-flex mb-4 align-items-start">
+                        <div class="bg-primary bg-opacity-10 text-primary fw-bold rounded-circle d-flex justify-content-center align-items-center flex-shrink-0 me-3" style="width: 28px; height: 28px; font-size: 0.8rem;">2</div>
+                        <div>
+                            <p class="fw-bold text-dark mb-1" style="font-size: 0.95rem;">Save your Transaction ID</p>
+                            <p class="text-muted small mb-0">Copy the Transaction ID (TrxID) provided by your bank/bKash after a successful transfer.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex align-items-start">
+                        <div class="bg-primary bg-opacity-10 text-primary fw-bold rounded-circle d-flex justify-content-center align-items-center flex-shrink-0 me-3" style="width: 28px; height: 28px; font-size: 0.8rem;">3</div>
+                        <div>
+                            <p class="fw-bold text-dark mb-1" style="font-size: 0.95rem;">Submit Proof</p>
+                            <p class="text-muted small mb-0">Select "Manual Transfer" on the right, enter the TrxID, and upload the screenshot.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            
+            <ul class="nav nav-pills nav-pills-custom nav-fill mb-4 p-1 bg-white rounded-pill border shadow-sm" id="paymentTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="online-tab" data-bs-toggle="pill" data-bs-target="#online" type="button" role="tab">
+                        <i class="bi bi-lightning-charge-fill me-1"></i> Pay Online
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="manual-tab" data-bs-toggle="pill" data-bs-target="#manual" type="button" role="tab">
+                        <i class="bi bi-receipt-cutoff me-1"></i> Manual Transfer
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="paymentTabsContent">
+                
+                <div class="tab-pane fade show active" id="online" role="tabpanel">
+                    <div class="card premium-card text-center p-5">
+                        <div class="mb-4">
+                            <i class="bi bi-shield-check text-success" style="font-size: 3rem;"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2" style="letter-spacing: -0.5px;">Instant Activation</h5>
+                        <p class="text-muted small mb-4 mx-auto" style="max-width: 300px;">Your subscription will be activated automatically right after the payment is successful.</p>
+                        
+                        <div class="d-flex flex-column gap-3 max-w-sm mx-auto w-100" style="max-width: 320px;">
+                            <a href="{% url 'saas_core:process_automated_payment' order.id 'stripe' %}" class="btn btn-dark btn-lg rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center" style="transition: transform 0.2s;">
+                                <i class="bi bi-credit-card-fill me-2"></i> Pay with Credit Card
+                            </a>
+                            <a href="{% url 'saas_core:process_automated_payment' order.id 'bkash' %}" class="btn btn-lg rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center text-white" style="background-color: #e2136e; transition: transform 0.2s;">
+                                <i class="bi bi-phone-fill me-2"></i> Pay with bKash
+                            </a>
+                        </div>
+                        
+                        <div class="mt-5 pt-4 border-top">
+                            <small class="text-muted fw-medium" style="font-size: 0.7rem;"><i class="bi bi-lock-fill text-secondary me-1"></i> 256-BIT SSL ENCRYPTED TRANSACTION</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="manual" role="tabpanel">
+                    <div class="card premium-card overflow-hidden">
+                        <div class="card-header bg-white border-bottom p-4">
+                            <h5 class="fw-bold mb-0 text-dark" style="letter-spacing: -0.5px;"><i class="bi bi-cloud-arrow-up text-primary me-2"></i>Submit Payment Proof</h5>
+                        </div>
+                        <div class="card-body p-4 p-md-5 bg-white">
+                            <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+                                {% csrf_token %}
+
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold small text-muted text-uppercase" style="letter-spacing: 0.5px; font-size: 0.7rem;">Payment Sent To <span class="text-danger">*</span></label>
+                                    <select name="account_id" class="form-select form-control-premium text-dark fw-medium" required>
+                                        <option value="" disabled selected>— Select the receiver account —</option>
+                                        {% for acc in accounts %}
+                                        <option value="{{ acc.id }}">{{ acc.gateway.name }} ({{ acc.account_number }})</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="row g-4 mb-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold small text-muted text-uppercase" style="letter-spacing: 0.5px; font-size: 0.7rem;">Your Sender A/C <span class="text-danger">*</span></label>
+                                        <input type="text" name="sender_number" class="form-control form-control-premium" placeholder="e.g. 017XXXXXXXX" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold small text-muted text-uppercase" style="letter-spacing: 0.5px; font-size: 0.7rem;">Transaction ID <span class="text-danger">*</span></label>
+                                        <input type="text" name="transaction_id" class="form-control form-control-premium text-uppercase font-monospace" placeholder="e.g. 9XFD7A..." required>
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold small text-muted text-uppercase" style="letter-spacing: 0.5px; font-size: 0.7rem;">Upload Receipt <span class="text-danger">*</span></label>
+                                    <div class="border-dashed rounded-4 p-4 text-center bg-light upload-zone" style="position: relative;">
+                                        <i class="bi bi-file-earmark-image fs-1 text-muted opacity-50 mb-2 d-block"></i>
+                                        <p class="text-dark fw-medium mb-1 small">Click to upload or drag and drop</p>
+                                        <p class="text-muted mb-0" style="font-size: 0.7rem;">PNG, JPG or PDF (Max 2MB)</p>
+                                        <input type="file" name="proof_file" class="form-control h-100 w-100 opacity-0" accept="image/*,application/pdf" style="position: absolute; top: 0; left: 0; cursor: pointer;" required>
+                                    </div>
+                                </div>
+
+                                <div class="d-grid mt-2">
+                                    <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2">
+                                        Submit for Verification <i class="bi bi-arrow-right"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Navigation Menu - Lumo OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid max-w-5xl mx-auto py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-link-45deg text-primary me-2"></i>Navigation Menus</h2>
+            <p class="text-muted small">Manage the links in your website's header and footer.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% for menu in menus %}
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+                <div class="card-header bg-light border-bottom p-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-list-ul text-secondary me-2"></i>{{ menu.name }}</h5>
+                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2 py-1">{{ menu.items.count }} Links</span>
+                </div>
+                
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for item in menu.items.all %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-4 py-3 bg-white">
+                            <div>
+                                <div class="fw-bold text-dark mb-1">{{ item.label }}</div>
+                                <div class="text-muted font-monospace small"><i class="bi bi-arrow-return-right me-1"></i>{{ item.url }}</div>
+                            </div>
+                            <form action="{% url 'lumo_sites:navigation_item_delete' item.id %}" method="POST" class="m-0" onsubmit="return confirm('Remove this link?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item text-center py-4 text-muted small bg-light bg-opacity-50">
+                            No links added yet.
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                
+                <div class="card-footer bg-white border-top p-4">
+                    <h6 class="fw-bold small text-muted text-uppercase mb-3">Add New Link</h6>
+                    <form method="POST" action="{% url 'lumo_sites:navigation_manager' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="menu_id" value="{{ menu.id }}">
+                        
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-5">
+                                {{ form.label }}
+                            </div>
+                            <div class="col-md-7">
+                                {{ form.url }}
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-2" style="width: 120px;">
+                                <label class="small text-muted mb-0 fw-bold">Order:</label>
+                                {{ form.sort_order }}
+                            </div>
+                            <button type="submit" class="btn btn-dark btn-sm rounded-pill fw-bold px-4 shadow-sm">
+                                <i class="bi bi-plus-lg me-1"></i> Add Link
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

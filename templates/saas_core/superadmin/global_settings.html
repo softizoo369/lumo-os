@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}Global Console | Superadmin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-hdd-network text-primary me-2"></i>Global System Console</h3>
+            <p class="text-muted small mb-0">Master configuration layer. <span class="badge bg-dark ms-2">SCOPE: PLATFORM-WIDE</span></p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <form method="POST" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger shadow-sm border-0 mb-4">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i>{{ form.non_field_errors.0 }}
+                </div>
+                {% endif %}
+
+                <!-- Section 1: Core Identity -->
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                    <h6 class="fw-bold text-dark mb-3 text-uppercase" style="letter-spacing: 1px;"><i class="bi bi-building-gear text-secondary me-2"></i>Core Identity</h6>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold text-muted">Platform Name</label>
+                            {{ form.site_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-muted">Support Email</label>
+                            {{ form.support_email }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-muted">Default Timezone</label>
+                            {{ form.default_timezone }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: SaaS Constitution v1 (The Core Brain) -->
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 border-start border-primary border-4">
+                    <h6 class="fw-bold text-dark mb-1 text-uppercase" style="letter-spacing: 1px;"><i class="bi bi-cpu text-primary me-2"></i>SaaS Lifecycle & Rules</h6>
+                    <p class="text-muted small mb-4">These flags control how onboarding, billing, and access control operate globally.</p>
+                    
+                    <div class="row g-4">
+                        <!-- Toggles -->
+                        <div class="col-12">
+                            <div class="form-check form-switch p-0 d-flex justify-content-between align-items-center border-bottom pb-3">
+                                <div>
+                                    <label class="form-check-label fw-bold text-dark mb-0" for="{{ form.allow_company_before_subscription.id_for_label }}">Allow Company Creation Before Payment</label>
+                                    <small class="text-muted d-block x-small">If enabled, users can create 1 company profile before selecting a plan.</small>
+                                </div>
+                                {{ form.allow_company_before_subscription }}
+                            </div>
+                            <div class="form-check form-switch p-0 d-flex justify-content-between align-items-center border-bottom py-3">
+                                <div>
+                                    <label class="form-check-label fw-bold text-dark mb-0" for="{{ form.dashboard_requires_active_subscription.id_for_label }}">Require Active Subscription for Dashboard</label>
+                                    <small class="text-muted d-block x-small">If enabled, locks the dashboard and forces users to the pricing page if unpaid.</small>
+                                </div>
+                                {{ form.dashboard_requires_active_subscription }}
+                            </div>
+                            <div class="form-check form-switch p-0 d-flex justify-content-between align-items-center py-3">
+                                <div>
+                                    <label class="form-check-label fw-bold text-dark mb-0" for="{{ form.trial_enabled.id_for_label }}">Enable Global Trials</label>
+                                    <small class="text-muted d-block x-small">Global switch to turn free trials on or off for the entire platform.</small>
+                                </div>
+                                {{ form.trial_enabled }}
+                            </div>
+                        </div>
+
+                        <!-- Numeric Rules -->
+                        <div class="col-md-6 mt-0">
+                            <label class="form-label small fw-bold text-dark"><i class="bi bi-calendar-range text-muted me-1"></i> Grace Period (Days)</label>
+                            {{ form.grace_period_days }}
+                            <small class="text-muted x-small d-block mt-1">Days before an account is suspended after payment fails.</small>
+                        </div>
+                        <div class="col-md-6 mt-0">
+                            <label class="form-label small fw-bold text-dark"><i class="bi bi-arrow-repeat text-muted me-1"></i> Payment Retry Limit</label>
+                            {{ form.max_payment_retries }}
+                            <small class="text-muted x-small d-block mt-1">Dunning engine retry attempts for auto-billing.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Danger Zone -->
+                <div class="card border-danger border-2 shadow-sm rounded-4 p-4 mb-4 bg-danger bg-opacity-10">
+                    <h6 class="fw-bold text-danger mb-3 text-uppercase" style="letter-spacing: 1px;"><i class="bi bi-exclamation-triangle-fill me-2"></i>Danger Zone</h6>
+                    <div class="form-check form-switch p-0 d-flex justify-content-between align-items-center">
+                        <div>
+                            <label class="form-check-label fw-bold text-danger mb-0" style="cursor: pointer;" for="{{ form.maintenance_mode.id_for_label }}">Emergency Maintenance Mode</label>
+                            <small class="text-danger d-block x-small opacity-75">Instantly locks out all tenants and suspends API payload processing.</small>
+                        </div>
+                        {{ form.maintenance_mode }}
+                    </div>
+                </div>
+
+                <!-- Action Bar -->
+                <div class="d-flex justify-content-end pb-5">
+                    <button type="submit" class="btn btn-primary fw-medium px-5 rounded-pill shadow-sm">
+                        <i class="bi bi-shield-lock-fill me-2"></i> Commit Global Rules
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Right: Context Info -->
+        <div class="col-lg-4">
+            <div class="alert alert-secondary border-0 small rounded-4 shadow-sm">
+                <h6 class="fw-bold text-dark mb-2"><i class="bi bi-info-circle-fill text-primary me-2"></i>System Architecture</h6>
+                <p class="mb-2">Changes committed here instantly update the <strong>SettingsService</strong> cache and apply zero-downtime rules across all tenant workspaces.</p>
+                <hr class="opacity-25">
+                <ul class="list-unstyled mb-0 font-monospace" style="font-size: 0.75rem;">
+                    <li class="mb-1"><strong>Engine:</strong> Redis / Memory</li>
+                    <li class="mb-1"><strong>Sync:</strong> Real-time</li>
+                    <li><strong>Scope:</strong> Global</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

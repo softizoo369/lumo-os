@@ -1,0 +1,22 @@
+<section class="py-16 px-4 bg-gray-50">
+    <div class="max-w-xl mx-auto bg-white p-8 rounded-theme shadow-md border-t-4" style="border-color: var(--primary-color);">
+        <h2 class="text-2xl font-bold mb-2 text-primary">{{ data.section_title|default:"Contact Us" }}</h2>
+        <p class="text-gray-600 mb-6">{{ data.description|default:"Fill out the form below." }}</p>
+        
+        <form class="space-y-4">
+            <input type="hidden" name="form_id" value="{{ data.form_definition_id }}">
+            
+            <div>
+                <label class="block text-sm font-medium mb-1">Full Name</label>
+                <input type="text" class="w-full border p-2 rounded-theme" placeholder="John Doe">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Email</label>
+                <input type="email" class="w-full border p-2 rounded-theme" placeholder="john@example.com">
+            </div>
+            <button type="button" class="w-full bg-primary text-secondary font-bold py-3 rounded-theme mt-4">
+                Submit Request
+            </button>
+        </form>
+    </div>
+</section>

@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Manifest Builder - {{ version.kit.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3 px-lg-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start mb-4 pb-3 border-bottom">
+        <div class="mb-3 mb-md-0">
+            <h3 class="fw-bold text-dark mb-1"><i class="bi bi-hammer text-primary me-2"></i>Manifest Builder</h3>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0 small">
+                    <li class="breadcrumb-item"><a href="{% url 'lumo_sites:superadmin_sitekit_list' %}" class="text-decoration-none text-muted">Themes</a></li>
+                    <li class="breadcrumb-item text-muted">{{ version.kit.name }}</li>
+                    <li class="breadcrumb-item active fw-semibold">v{{ version.version_number }} Builder</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-light bg-opacity-50">
+                <div class="card-header bg-white border-bottom p-4">
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-diagram-3 text-primary me-2"></i>Website Blueprint</h5>
+                    <p class="text-muted small mb-0 mt-1">This structure will be auto-generated when a client installs this theme.</p>
+                </div>
+                <div class="card-body p-4">
+                    
+                    {% regroup manifests by page_slug as page_list %}
+                    
+                    {% for page in page_list %}
+                        <div class="bg-white border rounded-4 shadow-sm mb-4 overflow-hidden">
+                            <div class="bg-dark text-white px-4 py-2 d-flex justify-content-between align-items-center">
+                                <span class="fw-bold font-monospace"><i class="bi bi-file-earmark me-2"></i>/{{ page.grouper }}</span>
+                                <span class="badge bg-white text-dark rounded-pill">{{ page.list|length }} Sections</span>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a href="{% url 'lumo_sites:page_builder' page_id=data.page.id %}" class="btn btn-sm btn-primary rounded-pill fw-bold px-3">
+                                    <i class="bi bi-magic"></i> Open Builder
+                                </a>
+                                
+                                <a href="{% url 'lumo_sites:page_edit' data.page.id %}" class="btn btn-sm btn-light border rounded-pill fw-bold">
+                                    <i class="bi bi-gear"></i> Settings
+                                </a>
+                                <a href="{% url 'lumo_sites:preview_page' slug=data.page.slug %}" target="_blank" class="btn btn-sm btn-light border rounded-pill fw-bold">
+                                    <i class="bi bi-eye"></i> Preview
+                                </a>
+                                
+                                <form action="{% url 'lumo_sites:page_delete' page_id=data.page.id %}" method="POST" class="m-0" onsubmit="return confirm('Delete this page?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill fw-bold px-3">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-puzzle text-muted opacity-25 d-block mb-3" style="font-size: 3rem;"></i>
+                            <h6 class="fw-bold text-dark">Blueprint is Empty</h6>
+                            <p class="text-muted small">Add sections from the right panel to build this theme.</p>
+                        </div>
+                    {% endfor %}
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4 sticky-top" style="top: 100px;">
+                <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom"><i class="bi bi-plus-circle text-primary me-2"></i>Add Section to Blueprint</h6>
+                
+                <form method="POST" action=".">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">Target Page Slug <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light fw-bold text-muted">/</span>
+                            {{ form.page_slug }}
+                        </div>
+                        <div class="form-text small">Which page will this section appear on? (e.g., home)</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">Select UI Section <span class="text-danger">*</span></label>
+                        {{ form.section_version }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">Starter Content (JSON Format)</label>
+                        {{ form.starter_content_json }}
+                        <div class="form-text small">Default text/images that will load when theme is installed.</div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-dark">Sort Order</label>
+                            {{ form.default_sort_order }}
+                        </div>
+                        <div class="col-6 d-flex align-items-end">
+                            <div class="form-check form-switch d-flex align-items-center gap-2 mb-2">
+                                {{ form.is_required }}
+                                <label class="form-check-label small fw-bold text-dark mb-0">Required?</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-dark w-100 fw-bold py-2.5 rounded-pill shadow-sm">
+                        <i class="bi bi-node-plus me-2"></i> Inject into Blueprint
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

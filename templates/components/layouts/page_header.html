@@ -1,0 +1,33 @@
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start mb-4 pb-3 border-bottom">
+    <div class="mb-3 mb-md-0">
+        <!-- Title Top -->
+        <h3 class="fw-bold text-dark mb-1" style="letter-spacing: -0.5px;">{{ title }}</h3>
+        <!-- Breadcrumbs Bottom -->
+        {% if breadcrumbs %}
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 small">
+                {{ breadcrumbs|safe }}
+            </ol>
+        </nav>
+        {% endif %}
+    </div>
+    
+    <!-- Right Side Actions & Extra Content -->
+    <div class="d-flex flex-column align-items-md-end gap-2">
+        <div class="d-flex gap-2">
+            {% if show_help %}
+            <button class="btn btn-light rounded-pill px-3 shadow-sm border" data-bs-toggle="modal" data-bs-target="#helpModal">
+                <i class="bi bi-question-circle text-primary me-1"></i> Help
+            </button>
+            {% endif %}
+            {{ actions|safe }}
+        </div>
+        
+        <!-- Optional Extra Content (Like Usage Stats) -->
+        {% if extra_content %}
+            <div class="mt-1">
+                {{ extra_content|safe }}
+            </div>
+        {% endif %}
+    </div>
+</div>

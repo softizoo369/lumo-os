@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Plan Add | Superadmin {{ current_workspace.name|default:global_config.site_name }}{% endblock %}
+
+
+{% block content %}
+<div class="container-fluid py-3 max-w-7xl">
+    <div class="mb-4">
+        <a href="{% url 'saas_core:superadmin_plan_list' %}" class="text-decoration-none text-muted mb-2 d-inline-block"><i class="bi bi-arrow-left me-1"></i>Back to Catalog</a>
+        <h3 class="fw-bold text-dark">{{ title }}</h3>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 max-w-3xl">
+        <div class="card-body p-4 p-md-5">
+            <form method="POST">
+                {% csrf_token %}
+                
+                {% for field in form %}
+                <div class="mb-4">
+                    <label class="form-label fw-bold small text-dark">{{ field.label }} {% if field.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                    <div class="form-text small text-muted">{{ field.help_text }}</div>
+                    {% endif %}
+                    {% if field.errors %}
+                    <div class="text-danger small mt-1 fw-medium"><i class="bi bi-exclamation-circle me-1"></i>{{ field.errors|striptags }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                <hr class="my-4 text-muted opacity-25">
+                <div class="text-end">
+                    <a href="{% url 'saas_core:superadmin_plan_list' %}" class="btn btn-light border px-4 rounded-pill me-2">Cancel</a>
+                    <button type="submit" class="btn btn-primary px-5 rounded-pill fw-bold shadow-sm">Save Configuration</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

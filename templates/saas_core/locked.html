@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+{% block title %}Access Denied | {{ workspace.name }} - {{ global_config.site_name }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* ===== SCROLLABLE & SAFE WRAPPER (Doesn't affect base template) ===== */
+    .access-wrapper {
+        background: linear-gradient(135deg, #0b0c1a 0%, #1a1a3e 40%, #2d1b69 100%);
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* ===== FLOATING SHAPES (Strictly scoped) ===== */
+    .access-wrapper .shape {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.03);
+        pointer-events: none;
+        animation: floatShape 25s infinite alternate ease-in-out;
+    }
+    .access-wrapper .shape:nth-child(1) {
+        width: 300px; height: 300px;
+        top: -80px; left: -80px;
+        background: radial-gradient(circle, rgba(0, 255, 255, 0.10), transparent);
+        animation-duration: 30s;
+    }
+    .access-wrapper .shape:nth-child(2) {
+        width: 400px; height: 400px;
+        bottom: -120px; right: -120px;
+        background: radial-gradient(circle, rgba(255, 0, 255, 0.08), transparent);
+        animation-duration: 35s;
+        animation-delay: -5s;
+        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+    }
+    .access-wrapper .shape:nth-child(3) {
+        width: 200px; height: 200px;
+        top: 10%; right: 5%;
+        background: radial-gradient(circle, rgba(0, 200, 255, 0.06), transparent);
+        animation-duration: 22s;
+        animation-delay: -10s;
+        border-radius: 40% 60% 30% 70% / 50% 40% 60% 50%;
+    }
+    .access-wrapper .shape:nth-child(4) {
+        width: 150px; height: 150px;
+        bottom: 15%; left: 5%;
+        background: radial-gradient(circle, rgba(255, 200, 0, 0.05), transparent);
+        animation-duration: 18s;
+        animation-delay: -7s;
+        border-radius: 60% 40% 50% 50% / 40% 60% 50% 50%;
+    }
+
+    @keyframes floatShape {
+        0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+        100% { transform: translate(60px, -40px) rotate(15deg) scale(1.1); }
+    }
+
+    /* ===== GLASS CARD (Uses Bootstrap classes) ===== */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.04) !important;
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), inset 0 0 80px rgba(0, 255, 255, 0.02);
+        transition: transform 0.4s ease, box-shadow 0.4s ease;
+        max-width: 520px;
+        width: 100%;
+    }
+    .glass-card:hover {
+        transform: translateY(-6px) scale(1.01);
+        box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), inset 0 0 80px rgba(0, 255, 255, 0.04);
+    }
+
+    /* ===== ANIMATED LOCK ===== */
+    .lock-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+    .lock-icon {
+        font-size: 5.5rem;
+        color: #ff6b6b;
+        filter: drop-shadow(0 0 20px rgba(255, 80, 80, 0.5));
+        animation: pulseLock 2.5s infinite ease-in-out;
+        display: block;
+        line-height: 1;
+    }
+    .lock-wrapper .ring {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 120px;
+        height: 120px;
+        margin: -60px 0 0 -60px;
+        border: 2px solid rgba(0, 255, 255, 0.15);
+        border-radius: 50%;
+        animation: spinRing 6s linear infinite;
+        pointer-events: none;
+    }
+    .lock-wrapper .ring:nth-child(2) {
+        width: 150px;
+        height: 150px;
+        margin: -75px 0 0 -75px;
+        border-color: rgba(255, 0, 255, 0.10);
+        animation-duration: 8s;
+        animation-direction: reverse;
+        border-style: dashed;
+    }
+
+    @keyframes pulseLock {
+        0% { transform: scale(1); filter: drop-shadow(0 0 20px rgba(255, 80, 80, 0.5)); }
+        50% { transform: scale(1.08); filter: drop-shadow(0 0 45px rgba(255, 80, 80, 0.9)); }
+        100% { transform: scale(1); filter: drop-shadow(0 0 20px rgba(255, 80, 80, 0.5)); }
+    }
+    @keyframes spinRing {
+        0% { transform: translate(-50%, -50%) rotate(0deg); }
+        100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    /* ===== GRADIENT TEXT ===== */
+    .glow-title {
+        font-size: 2.8rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #00f5ff, #ff00e5);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 0 0 30px rgba(0, 245, 255, 0.2);
+        letter-spacing: -0.5px;
+    }
+
+    /* ===== NEON BUTTONS (Overrides Bootstrap btn classes) ===== */
+    .btn-neon-primary {
+        background: linear-gradient(135deg, #00c6ff, #0072ff) !important;
+        border: none !important;
+        box-shadow: 0 0 25px rgba(0, 114, 255, 0.3);
+        color: #fff !important;
+        transition: all 0.3s ease;
+    }
+    .btn-neon-primary:hover {
+        transform: scale(1.04);
+        box-shadow: 0 0 45px rgba(0, 114, 255, 0.6);
+        color: #fff !important;
+        background: linear-gradient(135deg, #00d4ff, #0066ff) !important;
+    }
+
+    .btn-neon-outline {
+        border: 1px solid rgba(255, 255, 255, 0.25) !important;
+        color: rgba(255, 255, 255, 0.85) !important;
+        transition: all 0.3s ease;
+        background: transparent !important;
+    }
+    .btn-neon-outline:hover {
+        background: rgba(255, 255, 255, 0.08) !important;
+        border-color: #fff !important;
+        color: #fff !important;
+        transform: scale(1.02);
+        box-shadow: 0 0 30px rgba(255, 255, 255, 0.05);
+    }
+
+    /* ===== RESPONSIVE TWEAKS ===== */
+    @media (max-width: 576px) {
+        .glass-card { padding: 2.5rem 1.5rem !important; }
+        .glow-title { font-size: 2.2rem; }
+        .lock-icon { font-size: 4rem; }
+        .lock-wrapper .ring { width: 90px; height: 90px; margin: -45px 0 0 -45px; }
+        .lock-wrapper .ring:nth-child(2) { width: 110px; height: 110px; margin: -55px 0 0 -55px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- ===== MAIN WRAPPER (Handles background & height safely) ===== -->
+<div class="access-wrapper min-vh-100 d-flex align-items-center justify-content-center px-3 py-5">
+
+    <!-- Floating Background Shapes -->
+    <div class="shape"></div>
+    <div class="shape"></div>
+    <div class="shape"></div>
+    <div class="shape"></div>
+
+    <!-- ===== GLASS CARD (Built with Bootstrap classes) ===== -->
+    <div class="glass-card card bg-white bg-opacity-10 border border-white border-opacity-10 rounded-5 p-5 text-center position-relative" style="z-index: 2;">
+
+        <!-- Animated Lock + Rings -->
+        <div class="lock-wrapper mb-4">
+            <i class="bi bi-lock-fill lock-icon"></i>
+            <div class="ring"></div>
+            <div class="ring"></div>
+        </div>
+
+        <!-- Title -->
+        <h1 class="glow-title">Workspace Locked</h1>
+
+        <!-- Message -->
+        <div class="d-inline-block mx-auto  px-4 py-2 rounded-pill bg-dark bg-opacity-25 text-light small fw-light mb-4" style="backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.05);">
+            {% if messages %}
+                {% for m in messages %}{{ m }}{% endfor %}
+            {% else %}
+                Your workspace access has been restricted.
+            {% endif %}
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex flex-wrap justify-content-center align-items-center gap-3">
+            <a href="mailto:support@lumo-os.com" class="btn btn-neon-primary rounded-pill px-4 py-2 fw-semibold">
+                <i class="bi bi-envelope-paper me-2"></i> Contact Support
+            </a>
+
+            <form action="{% url 'identity:logout' %}" method="post" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-neon-outline rounded-pill px-4 py-2 fw-semibold">
+                    <i class="bi bi-box-arrow-right me-2"></i> Logout
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

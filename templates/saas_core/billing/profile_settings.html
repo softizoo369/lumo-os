@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% block title %}Legal & Billing Profile | {{ current_workspace.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4 max-w-5xl">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start mb-4 pb-3 border-bottom">
+        <div class="mb-3 mb-md-0">
+            <h3 class="fw-bold text-dark mb-1" style="letter-spacing: -0.5px;">
+                <i class="bi bi-buildings text-primary me-2"></i>Legal & Tax Profile
+            </h3>
+            <p class="text-muted small mb-0">This information will be printed on your official invoices and used for tax calculation.</p>
+        </div>
+        <div>
+            <a href="{% url 'saas_core:billing_dashboard' %}" class="btn btn-light btn-sm rounded-pill px-4 border shadow-sm fw-medium text-muted">
+                <i class="bi bi-arrow-left me-1"></i> Back to Billing
+            </a>
+        </div>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        <div class="row g-4">
+            
+            <!-- Legal Identity Section -->
+            <div class="col-xl-7">
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-body p-4 p-md-5">
+                        <h6 class="fw-bold text-dark mb-4 text-uppercase border-bottom pb-2" style="font-size: 0.8rem; letter-spacing: 0.5px;">
+                            <i class="bi bi-briefcase-fill text-secondary me-2"></i>Corporate Identity
+                        </h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold small text-dark">Legal Company Name <span class="text-danger">*</span></label>
+                                {{ form.legal_company_name }}
+                                <div class="form-text small text-muted">As registered with the government.</div>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold small text-dark">Billing Email Address <span class="text-danger">*</span></label>
+                                {{ form.billing_email }}
+                            </div>
+                        </div>
+
+                        <h6 class="fw-bold text-dark mb-4 text-uppercase border-bottom pb-2 mt-5" style="font-size: 0.8rem; letter-spacing: 0.5px;">
+                            <i class="bi bi-geo-alt-fill text-secondary me-2"></i>Registered Address
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label fw-bold small text-dark">Street Address</label>
+                                {{ form.address_line }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-dark">City</label>
+                                {{ form.city }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-dark">State / Province</label>
+                                {{ form.state }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-dark">Postal Code</label>
+                                {{ form.postal_code }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-dark">Country <span class="text-danger">*</span></label>
+                                {{ form.country }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tax & Compliance Section -->
+            <div class="col-xl-5">
+                <div class="card border-0 shadow-sm rounded-4 mb-4 bg-light bg-opacity-50">
+                    <div class="card-body p-4 p-md-5">
+                        <h6 class="fw-bold text-dark mb-4 text-uppercase border-bottom pb-2" style="font-size: 0.8rem; letter-spacing: 0.5px;">
+                            <i class="bi bi-shield-check text-success me-2"></i>Tax & Compliance
+                        </h6>
+                        
+                        <div class="alert alert-primary bg-primary bg-opacity-10 border-0 rounded-3 small p-3 mb-4">
+                            <i class="bi bi-info-circle-fill me-2"></i> <strong>Why do we need this?</strong><br>
+                            Providing your VAT or Tax ID ensures your business complies with local tax regulations and B2B invoicing standards.
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-dark">Tax ID Type</label>
+                            {{ form.tax_registration_type }}
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-dark">Registration Number</label>
+                            {{ form.tax_registration_number }}
+                        </div>
+
+                        <div class="d-grid mt-5">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
+                                <i class="bi bi-floppy-fill me-2"></i> Save Legal Profile
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+{% endblock %}

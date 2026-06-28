@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+{% block title %}Users & Team | Lumo OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3 px-lg-4">
+    
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start mb-4 pb-3 border-bottom">
+        <div class="mb-3 mb-md-0">
+            <h3 class="fw-bold text-dark mb-1" style="letter-spacing: -0.5px;">
+                <i class="bi bi-people-fill text-primary me-2"></i>Users & Team
+            </h3>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0 small">
+                    <li class="breadcrumb-item"><a href="{% url 'saas_core:dashboard_home' %}" class="text-decoration-none text-muted"><i class="bi bi-house"></i> Home</a></li>
+                    <li class="breadcrumb-item text-muted">Workspace Settings</li>
+                    <li class="breadcrumb-item active fw-semibold text-dark">Team Members</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm fw-bold d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#inviteModal">
+                <i class="bi bi-person-plus-fill me-2"></i> Add Member
+            </button>
+        </div>
+    </div>
+
+    <ul class="nav nav-pills mb-4 gap-2" id="teamTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active rounded-pill px-4 fw-medium border shadow-sm" id="active-tab" data-bs-toggle="pill" data-bs-target="#active-members" type="button" role="tab" style="font-size: 0.9rem;">
+                Active Members <span class="badge bg-white text-primary border ms-1 rounded-pill">{{ members.count }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill px-4 fw-medium border shadow-sm text-muted bg-white" id="pending-tab" data-bs-toggle="pill" data-bs-target="#pending-invites" type="button" role="tab" style="font-size: 0.9rem;">
+                Pending Invites <span class="badge bg-light text-muted border ms-1 rounded-pill">{{ pending_invites.count }}</span>
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="teamTabsContent">
+        
+        <div class="tab-pane fade show active" id="active-members" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="py-3 ps-4 text-uppercase text-muted small fw-bold" style="letter-spacing: 0.5px;">Member Name</th>
+                                <th class="py-3 text-uppercase text-muted small fw-bold" style="letter-spacing: 0.5px;">Email Address</th>
+                                <th class="py-3 text-uppercase text-muted small fw-bold" style="letter-spacing: 0.5px;">System Role</th>
+                                <th class="py-3 pe-4 text-end text-uppercase text-muted small fw-bold" style="letter-spacing: 0.5px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for member in members %}
+                            <tr>
+                                <td class="ps-4 py-3">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px; font-size: 0.9rem;">
+                                            {{ member.user.first_name|make_list|first|upper|default:member.user.email|make_list|first|upper }}
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0 fw-bold text-dark fs-6">
+                                                {% if member.user.first_name %}
+                                                    {{ member.user.first_name }} {{ member.user.last_name }}
+                                                {% else %}
+                                                    {{ member.user.email }}
+                                                {% endif %}
+                                            </h6>
+                                            <small class="text-muted">Joined {{ member.created_at|date:"M Y" }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="text-muted">{{ member.user.email }}</span></td>
+                                <td>
+                                    <span class="badge bg-light text-dark border rounded-pill px-3 py-1 fw-medium">
+                                        <i class="bi bi-shield-check me-1 text-primary"></i>{{ member.role.name }}
+                                    </span>
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <a href="{% url 'saas_core:team_update' member.id %}" class="btn btn-sm btn-light border rounded-pill text-primary fw-medium px-3">
+                                        <i class="bi bi-pencil-square me-1"></i> Edit
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-5">
+                                    <i class="bi bi-people text-muted opacity-25" style="font-size: 3rem;"></i>
+                                    <h6 class="mt-3 fw-bold text-dark">No Members Yet</h6>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="pending-invites" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="py-3 ps-4 text-uppercase text-muted small fw-bold" style="letter-spacing: 0.5px;">Invited Email</th>
+                                <th class="py-3 text-uppercase text-muted small fw-bold" style="letter-spacing: 0.5px;">Assigned Role</th>
+                                <th class="py-3 text-uppercase text-muted small fw-bold" style="letter-spacing: 0.5px;">Sent Details</th>
+                                <th class="py-3 pe-4 text-end text-uppercase text-muted small fw-bold" style="letter-spacing: 0.5px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for invite in pending_invites %}
+                            <tr>
+                                <td class="ps-4 py-3 fw-bold text-dark">
+                                    <i class="bi bi-envelope-at text-muted me-2"></i>{{ invite.email }}
+                                </td>
+                                <td><span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-3 py-1">{{ invite.role.name }}</span></td>
+                                <td>
+                                    <span class="d-block text-muted small">Sent: {{ invite.last_sent_at|date:"M d, Y" }}</span>
+                                    <span class="text-danger" style="font-size: 0.7rem;">Expires in {{ invite.expires_at|timeuntil }}</span>
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <form action="{% url 'saas_core:team_invite' %}" method="POST" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="email" value="{{ invite.email }}">
+                                        <input type="hidden" name="role_id" value="{{ invite.role.id }}">
+                                        <button type="submit" class="btn btn-sm btn-light border rounded-pill text-success fw-medium px-3">
+                                            <i class="bi bi-arrow-repeat me-1"></i> Resend
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-5">
+                                    <i class="bi bi-envelope-paper text-muted opacity-25" style="font-size: 3rem;"></i>
+                                    <h6 class="mt-3 fw-bold text-dark">No Pending Invitations</h6>
+                                    <p class="small text-muted mb-0">Click 'Add Member' to invite new people to your workspace.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="modal fade" id="inviteModal" tabindex="-1" aria-labelledby="inviteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-bottom bg-light px-4 py-3">
+                <h5 class="modal-title fw-bold text-dark" id="inviteModalLabel"><i class="bi bi-person-plus-fill text-primary me-2"></i>Add Team Member</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body p-0">
+                <ul class="nav nav-tabs nav-fill bg-light border-bottom-0" id="addMemberTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active fw-bold text-dark py-3 rounded-0" id="email-invite-tab" data-bs-toggle="tab" data-bs-target="#email-invite" type="button" role="tab">
+                            <i class="bi bi-envelope-paper me-1"></i> Send Invite Link
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold text-muted py-3 rounded-0 border-start" id="manual-add-tab" data-bs-toggle="tab" data-bs-target="#manual-add" type="button" role="tab">
+                            <i class="bi bi-person-gear me-1"></i> Add Manually
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content p-4" id="addMemberTabsContent">
+                    
+                    <div class="tab-pane fade show active" id="email-invite" role="tabpanel">
+                        <form action="{% url 'saas_core:team_invite' %}" method="POST">
+                            {% csrf_token %}
+                            <p class="text-muted small mb-4">Send an email invitation. Best for managers and office staff who can set their own passwords.</p>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-dark">Email Address <span class="text-danger">*</span></label>
+                                <input type="email" name="email" class="form-control bg-light" required placeholder="e.g., manager@company.com">
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label fw-bold small text-dark">Assign Role <span class="text-danger">*</span></label>
+                                <select name="role_id" class="form-select bg-light" required>
+                                    <option value="" disabled selected>Select a role...</option>
+                                    {% for role in roles %}
+                                        <option value="{{ role.id }}">{{ role.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold shadow-sm"><i class="bi bi-send-fill me-2"></i>Send Invitation</button>
+                        </form>
+                    </div>
+
+                    <div class="tab-pane fade" id="manual-add" role="tabpanel">
+                        <form action="{% url 'saas_core:team_add_manual' %}" method="POST">
+                            {% csrf_token %}
+                            <p class="text-muted small mb-4">Create the account instantly. Best for factory workers or members who don't use email.</p>
+                            
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <label class="form-label fw-bold small text-dark">First Name <span class="text-danger">*</span></label>
+                                    <input type="text" name="first_name" class="form-control bg-light" required placeholder="John">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-bold small text-dark">Last Name <span class="text-danger">*</span></label>
+                                    <input type="text" name="last_name" class="form-control bg-light" required placeholder="Doe">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-dark">Employee Email/ID <span class="text-danger">*</span></label>
+                                <input type="email" name="email" class="form-control bg-light" required placeholder="e.g., worker101@company.com">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-dark">Set Password <span class="text-danger">*</span></label>
+                                <input type="text" name="password" class="form-control bg-light" required minlength="8" placeholder="Must be 8 characters">
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label fw-bold small text-dark">Assign Role <span class="text-danger">*</span></label>
+                                <select name="role_id" class="form-select bg-light" required>
+                                    <option value="" disabled selected>Select a role...</option>
+                                    {% for role in roles %}
+                                        <option value="{{ role.id }}">{{ role.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-dark w-100 rounded-pill fw-bold shadow-sm"><i class="bi bi-person-check-fill me-2"></i>Create User Instantly</button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Styling for Pills and Tabs */
+    .nav-pills .nav-link { color: var(--text-muted); transition: all 0.3s; }
+    .nav-pills .nav-link.active { background-color: var(--primary-color) !important; color: white !important; border-color: var(--primary-color) !important; }
+    .nav-tabs .nav-link { border: none; background: transparent; }
+    .nav-tabs .nav-link.active { border-bottom: 3px solid var(--primary-color) !important; background: white !important; color: var(--primary-color) !important; }
+</style>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends 'base.html' %} 
+{% block title %}Pricing Catalog | Super Admin {{ global_config.site_name }}{% endblock %} 
+
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-tags text-primary me-2"></i>Pricing Catalog</h3>
+            <p class="text-muted small">Manage subscription plans and multi-currency pricing.</p>
+        </div>
+        <a href="{% url 'saas_core:superadmin_plan_create' %}" class="btn btn-primary rounded-pill fw-bold shadow-sm">
+            <i class="bi bi-plus-lg me-1"></i> Create New Plan
+        </a>
+    </div>
+
+    <div class="row g-4">
+        {% for plan in plans %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100 position-relative overflow-hidden">
+                {% if not plan.is_active %}
+                <div class="position-absolute top-0 end-0 bg-danger text-white px-3 py-1 rounded-bl-3 small fw-bold">Inactive</div>
+                {% endif %}
+                
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-dark mb-1">{{ plan.name }}</h5>
+                    <span class="badge bg-light text-muted border mb-3 font-monospace">{{ plan.code }}</span>
+                    <p class="text-muted small mb-4" style="min-height: 40px;">{{ plan.description|default:"No description provided." }}</p>
+                    
+                    <h6 class="fw-bold text-dark mb-3 border-bottom pb-2">Pricing Matrix</h6>
+                    
+                    <div class="d-flex flex-column gap-2 mb-3">
+                        {% for price in plan.prices.all %}
+                            {% if price.is_active and not price.is_archived %}
+                            <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded border">
+                                <span class="fw-bold text-primary">{{ price.amount }} {{ price.currency.code }}</span>
+                                <span class="badge bg-white text-dark border">{{ price.billing_cycle|title }}</span>
+                            </div>
+                            {% endif %}
+                        {% empty %}
+                            <div class="text-muted small">No active pricing configured.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="card-footer bg-white border-top p-3 d-flex gap-2">
+                    <a href="{% url 'saas_core:superadmin_plan_update' plan.id %}" class="btn btn-sm btn-light border flex-grow-1 text-primary fw-medium hover-primary">
+                        <i class="bi bi-pencil-square me-1"></i> Edit Plan
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="bi bi-box-seam text-muted opacity-25" style="font-size: 4rem;"></i>
+            <h5 class="mt-3 fw-bold text-dark">No Plans Configured</h5>
+            <p class="text-muted">Create your first subscription plan to start generating revenue.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

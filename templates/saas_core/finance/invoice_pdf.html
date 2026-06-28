@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice {{ invoice.invoice_number }}</title>
+    <style>
+        @page { size: A4; margin: 2cm; }
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; line-height: 1.5; font-size: 12px; }
+        .header { width: 100%; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 30px; }
+        .company-logo { font-size: 24px; font-weight: bold; color: #4f46e5; }
+        .invoice-title { font-size: 32px; font-weight: bold; color: #0f172a; text-transform: uppercase; float: right; margin-top: -10px; }
+        .details-table { width: 100%; margin-bottom: 40px; }
+        .details-table td { vertical-align: top; width: 50%; }
+        .section-title { font-size: 10px; font-weight: bold; color: #64748b; text-transform: uppercase; margin-bottom: 5px; }
+        .info-text { margin: 0; color: #1e293b; font-size: 13px; }
+        .items-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        .items-table th { background-color: #f8fafc; border-bottom: 2px solid #cbd5e1; text-align: left; padding: 10px; font-size: 11px; text-transform: uppercase; color: #475569; }
+        .items-table td { padding: 12px 10px; border-bottom: 1px solid #e2e8f0; color: #0f172a; }
+        .totals-table { width: 40%; float: right; border-collapse: collapse; }
+        .totals-table td { padding: 8px 10px; text-align: right; }
+        .totals-table .total-row { font-size: 16px; font-weight: bold; border-top: 2px solid #cbd5e1; color: #4f46e5; }
+        .footer { position: fixed; bottom: 0; width: 100%; text-align: center; font-size: 10px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <table class="header">
+        <tr>
+            <td><div class="company-logo">{{ global_config.site_name|default:"Lumo OS" }}</div></td>
+            <td><div class="invoice-title">INVOICE</div></td>
+        </tr>
+    </table>
+
+    <table class="details-table">
+        <tr>
+            <td>
+                <div class="section-title">Billed To:</div>
+                <p class="info-text"><strong>{{ invoice.snapshot_company_name }}</strong></p>
+                <p class="info-text">{{ invoice.snapshot_billing_email }}</p>
+                {% if invoice.snapshot_billing_address %}
+                    <p class="info-text">{{ invoice.snapshot_billing_address }}</p>
+                {% endif %}
+                {% if invoice.snapshot_tax_id %}
+                    <p class="info-text" style="margin-top: 5px;">{{ invoice.snapshot_tax_type|default:"Tax ID" }}: {{ invoice.snapshot_tax_id }}</p>
+                {% endif %}
+            </td>
+            <td style="text-align: right;">
+                <div class="section-title">Invoice Details:</div>
+                <p class="info-text"><strong>Number:</strong> {{ invoice.invoice_number }}</p>
+                <p class="info-text"><strong>Date Issued:</strong> {{ invoice.issued_at|date:"M d, Y"|default:"Pending" }}</p>
+                <p class="info-text"><strong>Status:</strong> <span style="color: {% if invoice.status == 'PAID' %}#16a34a{% else %}#ef4444{% endif %}; font-weight: bold;">{{ invoice.status }}</span></p>
+            </td>
+        </tr>
+    </table>
+
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th style="text-align: center;">Qty</th>
+                <th style="text-align: right;">Unit Price</th>
+                <th style="text-align: right;">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in line_items %}
+            <tr>
+                <td>{{ item.description }}</td>
+                <td style="text-align: center;">{{ item.quantity }}</td>
+                <td style="text-align: right;">{{ invoice.snapshot_display_currency }} {{ item.unit_price }}</td>
+                <td style="text-align: right;">{{ invoice.snapshot_display_currency }} {{ item.amount }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <table class="totals-table">
+        <tr>
+            <td style="color: #64748b;">Subtotal:</td>
+            <td>{{ invoice.snapshot_display_currency }} {{ invoice.subtotal }}</td>
+        </tr>
+        <tr>
+            <td style="color: #64748b;">Tax Amount:</td>
+            <td>{{ invoice.snapshot_display_currency }} {{ invoice.tax_amount }}</td>
+        </tr>
+        <tr class="total-row">
+            <td>Total:</td>
+            <td>{{ invoice.snapshot_display_currency }} {{ invoice.total_amount }}</td>
+        </tr>
+        {% if invoice.status == 'PAID' %}
+        <tr>
+            <td style="color: #16a34a; font-size: 12px; padding-top: 15px;">Amount Paid:</td>
+            <td style="color: #16a34a; font-size: 12px; padding-top: 15px;">- {{ invoice.snapshot_display_currency }} {{ invoice.amount_paid }}</td>
+        </tr>
+        {% endif %}
+    </table>
+
+    <div class="footer">
+        Thank you for your business! This is a computer-generated document and requires no signature.
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Create Theme - Lumo OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3 px-lg-4 max-w-4xl mx-auto">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start mb-4 pb-3 border-bottom">
+        <div class="mb-3 mb-md-0">
+            <h3 class="fw-bold text-dark mb-1"><i class="bi bi-magic text-primary me-2"></i>{{ title }}</h3>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0 small">
+                    <li class="breadcrumb-item"><a href="{% url 'saas_core:dashboard_home' %}" class="text-decoration-none text-muted"><i class="bi bi-house"></i> Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'lumo_sites:superadmin_sitekit_list' %}" class="text-decoration-none text-muted">Theme Manager</a></li>
+                    <li class="breadcrumb-item active fw-semibold">Create Theme</li>
+                </ol>
+            </nav>
+        </div>
+        <a href="{% url 'lumo_sites:superadmin_sitekit_list' %}" class="btn btn-light border rounded-pill px-4 shadow-sm fw-bold">
+            <i class="bi bi-arrow-left me-2"></i>Back to List
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-body p-5">
+            <form method="POST" action=".">
+                {% csrf_token %}
+                
+                <h6 class="fw-bold border-bottom pb-2 mb-4"><i class="bi bi-info-circle text-primary me-2"></i>Theme Basic Information</h6>
+                
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-dark">Theme Name <span class="text-danger">*</span></label>
+                        {{ form.name }}
+                        <div class="form-text small">e.g., Medicare Pro, Foodie Bistro</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-dark">Target Industry</label>
+                        {{ form.industry }}
+                        <div class="form-text small">Leave blank to make it available for all industries.</div>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold border-bottom pb-2 mb-4 mt-5"><i class="bi bi-tag text-success me-2"></i>Pricing & Availability</h6>
+                
+                <div class="row g-4 align-items-center">
+                    <div class="col-md-3">
+                        <div class="form-check form-switch d-flex align-items-center gap-2">
+                            {{ form.is_premium }}
+                            <label class="form-check-label small fw-bold text-dark mb-0">Premium Theme</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-dark">Price (USD)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light fw-bold text-muted">$</span>
+                            {{ form.price }}
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label small fw-bold text-dark">Required Subscription Plan</label>
+                        {{ form.required_plan }}
+                        <div class="form-text small">Restrict this theme to specific paid plans.</div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end mt-5 pt-4 border-top">
+                    <button type="submit" class="btn btn-primary fw-bold px-5 py-2.5 rounded-pill shadow-sm">
+                        Create Theme Blueprint <i class="bi bi-arrow-right ms-2"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

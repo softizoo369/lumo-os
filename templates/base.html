@@ -1,0 +1,479 @@
+{% load static %}
+{% load auth_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>{% block title %}{{ current_workspace.name|default:global_config.site_name }}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: {{ primary_color|default:"#4f46e5" }};
+            --primary-hover: #4338ca;
+            --primary-light: rgba(79, 70, 229, 0.1);
+            --bg-body: #f8fafc;
+            --bg-surface: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --header-height: 72px;
+            --sidebar-width: 280px;
+        }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: var(--text-main); overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+        .premium-header { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--border-color); height: var(--header-height); position: fixed; top: 0; left: 0; right: 0; z-index: 1030; padding: 0 1.5rem; }
+        .search-bar-premium { background-color: #f1f5f9; border: 1px solid transparent; border-radius: 10px; transition: all 0.3s ease; width: 300px; padding: 8px 16px; }
+        .search-bar-premium:focus-within { background-color: var(--bg-surface); border-color: var(--primary-color); box-shadow: 0 0 0 4px var(--primary-light); width: 340px; }
+        .search-input { background: transparent; border: none; outline: none; font-size: 0.9rem; color: var(--text-main); }
+        .icon-btn-premium { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 10px; color: var(--text-muted); transition: all 0.2s ease; background: transparent; border: 1px solid transparent; cursor: pointer; text-decoration: none; }
+        .icon-btn-premium:hover { background: #f1f5f9; color: var(--primary-color); }
+        .user-dropdown-toggle { padding: 6px 16px 6px 6px; border-radius: 50px; border: 1px solid var(--border-color); background: var(--bg-surface); transition: all 0.2s ease; cursor: pointer; }
+        .user-dropdown-toggle:hover { border-color: #cbd5e1; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        .dropdown-menu-premium { border: 1px solid var(--border-color); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); border-radius: 16px; padding: 0.5rem; margin-top: 10px !important; }
+        .dropdown-item { border-radius: 8px; transition: all 0.2s; font-weight: 500; color: var(--text-main); }
+        .dropdown-item:hover { background-color: #f1f5f9; color: var(--primary-color); }
+        .app-wrapper { padding-top: var(--header-height); display: flex; min-height: 100vh; }
+        .app-sidebar { width: var(--sidebar-width); position: fixed; top: var(--header-height); bottom: 0; left: 0; z-index: 1020; background: var(--bg-surface); border-right: 1px solid var(--border-color); overflow-y: auto; padding: 1.5rem 1rem; transition: transform 0.3s ease; }
+        .app-main { flex-grow: 1; margin-left: var(--sidebar-width); padding: 2rem; background-color: var(--bg-body); min-height: calc(100vh - var(--header-height)); }
+        @media (max-width: 991.98px) { .app-sidebar { transform: translateX(-100%); box-shadow: 4px 0 24px rgba(0,0,0,0.05); } .app-sidebar.show { transform: translateX(0); } .app-main { margin-left: 0; padding: 1.25rem; } }
+        .nav-link-custom { display: flex; align-items: center; padding: 10px 16px; color: var(--text-muted); border-radius: 12px; transition: all 0.2s ease; font-weight: 500; text-decoration: none; margin-bottom: 4px; }
+        .nav-link-custom i { font-size: 1.1rem; margin-right: 12px; color: #94a3b8; transition: all 0.2s; }
+        .nav-link-custom:hover { background-color: #f8fafc; color: var(--text-main); }
+        .nav-link-custom.active { background-color: var(--primary-light); color: var(--primary-color); font-weight: 600; }
+        .nav-link-custom.active i { color: var(--primary-color); }
+        .chevron-icon { transition: transform 0.3s ease; font-size: 0.8rem !important; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; } ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .toast-container { z-index: 1100; max-width: 420px; padding: 1rem !important; }
+        .toast { width: 100%; border-radius: 14px !important; background: var(--bg-surface, #ffffff) !important; border: 1px solid var(--border-color, #e2e8f0) !important; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02) !important; color: var(--text-main, #0f172a) !important; padding: 0 !important; overflow: hidden; transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1); opacity: 0; transform: translateY(10px) scale(0.98); animation: toastFadeIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        @keyframes toastFadeIn { 0% { opacity: 0; transform: translateY(10px) scale(0.98); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+        .toast::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 14px 14px 0 0; }
+        .toast.text-bg-success::before { background: #22c55e; } .toast.text-bg-danger::before { background: #ef4444; } .toast.text-bg-warning::before { background: #f59e0b; } .toast.text-bg-primary::before { background: var(--primary-color, #4f46e5); } .toast.text-bg-info::before { background: #06b6d4; }
+        .toast-body-text { word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; white-space: normal; line-height: 1.5; font-size: 0.925rem; padding: 1rem 1.25rem !important; font-weight: 500; color: var(--text-main, #0f172a); display: flex; align-items: center; gap: 12px; }
+        .toast-icon { font-size: 1.3rem; flex-shrink: 0; line-height: 1; }
+        .toast.text-bg-success .toast-icon { color: #22c55e; } .toast.text-bg-danger .toast-icon { color: #ef4444; } .toast.text-bg-warning .toast-icon { color: #f59e0b; } .toast.text-bg-primary .toast-icon { color: var(--primary-color, #4f46e5); } .toast.text-bg-info .toast-icon { color: #06b6d4; }
+        .toast .btn-close-clean { width: 28px; height: 28px; min-width: 28px; border-radius: 8px; border: none; background: transparent; color: var(--text-muted, #94a3b8); display: flex; align-items: center; justify-content: center; transition: all 0.15s ease; cursor: pointer; font-size: 1.1rem; padding: 0; margin-right: 4px; }
+        .toast .btn-close-clean:hover { background: #f1f5f9; color: var(--text-main, #0f172a); }
+        .toast .btn-close-clean:active { transform: scale(0.9); }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<nav class="premium-header d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-3">
+        <button class="icon-btn-premium d-lg-none" type="button" id="sidebarToggleBtn"><i class="bi bi-list fs-4"></i></button>
+        <a class="text-decoration-none fw-bold fs-4 d-flex align-items-center gap-2 m-0" href="{% url 'saas_core:dashboard_home' %}" style="color: var(--text-main); letter-spacing: -0.5px;">
+            <div style="width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--primary-color), #818cf8); display: flex; align-items: center; justify-content: center; color: white;"><i class="bi bi-layers-fill fs-6"></i></div>
+            {{ current_workspace.name|default:global_config.site_name|default:"Lumo OS" }}
+        </a>
+
+        {% if workspaces and workspaces|length > 1 %}
+        <div class="dropdown ms-3 d-none d-md-block">
+            <button class="btn btn-sm btn-light border dropdown-toggle fw-medium text-dark" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-building me-1 text-primary"></i> Switch Workspace
+            </button>
+            <ul class="dropdown-menu shadow-sm border-0" style="border-radius: 12px; width: 220px;">
+                <li class="px-3 py-2 border-bottom"><small class="text-muted fw-bold text-uppercase" style="font-size:0.65rem;">Your Workspaces</small></li>
+                {% for w in workspaces %}
+                <li>
+                    <a class="dropdown-item py-2 {% if current_workspace.id == w.workspace.id %}active bg-primary-light text-primary fw-bold{% endif %}" 
+                       href="?workspace={{ w.workspace.id }}">
+                        {{ w.workspace.name }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="d-none d-lg-flex">
+        <div class="search-bar-premium d-flex align-items-center">
+            <i class="bi bi-search text-muted me-2"></i>
+            <input type="search" class="search-input w-100" placeholder="Search everywhere...">
+            <div class="bg-white border rounded px-2 py-0 ms-2 text-muted small" style="font-size: 0.7rem; font-weight: 600;">⌘K</div>
+        </div>
+    </div>
+    
+    <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'saas_core:workspace_preferences' %}" class="icon-btn-premium d-none d-md-flex" title="Settings"><i class="bi bi-gear"></i></a>
+        
+        <div class="dropdown">
+            <button class="icon-btn-premium position-relative" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                <i class="bi bi-bell"></i>
+                {% if lumo_unread_count > 0 %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-white shadow-sm" style="font-size: 0.6rem; padding: 0.3em 0.5em;">
+                    {{ lumo_unread_count }}
+                </span>
+                {% endif %}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-premium p-0 overflow-hidden shadow-lg border-0" style="width: 350px;">
+                <li class="px-3 py-3 border-bottom bg-light d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold text-dark" style="letter-spacing: -0.5px;">Notifications</h6>
+                </li>
+                <div style="max-height: 380px; overflow-y: auto;">
+                    <li class="py-5 text-center px-4">
+                        <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <i class="bi bi-bell-slash fs-3"></i>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-1">All caught up!</h6>
+                        <p class="text-muted small mb-0">You have no unread notifications right now.</p>
+                    </li>
+                </div>
+            </ul>
+        </div>
+
+        <div class="vr d-none d-md-block mx-2 opacity-10"></div>
+
+        <div class="dropdown">
+            <div class="user-dropdown-toggle d-flex align-items-center gap-2" data-bs-toggle="dropdown" aria-expanded="false">
+                <div style="width: 32px; height: 32px; border-radius: 50%; background-color: var(--primary-color); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 0.85rem;">
+                    {{ user.first_name|make_list|first|upper|default:"A" }}
+                </div>
+                <div class="d-none d-xl-flex flex-column justify-content-center pe-2 text-start">
+                    <span class="fw-bold text-dark lh-1" style="font-size: 0.85rem;">{{ user.first_name|default:"Workspace Member" }}</span>
+                    <span class="text-muted lh-1 mt-1" style="font-size: 0.75rem;">{{ user.email }}</span>
+                </div>
+            </div>
+            
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-premium" style="width: 220px;">
+                <li><a class="dropdown-item py-2" href="#"><i class="bi bi-person me-2 text-muted"></i> My Profile</a></li>
+                <li><a class="dropdown-item py-2" href="{% url 'saas_core:billing_dashboard' %}"><i class="bi bi-credit-card me-2 text-muted"></i> Billing & Usage</a></li>
+                <li><a class="dropdown-item py-2" href="{% url 'saas_core:subscription_plans' %}"><i class="bi bi-rocket-takeoff me-2 text-primary"></i> Upgrade Plan</a></li>
+                <li><hr class="dropdown-divider my-2"></li>
+                <li>
+                    <form action="{% url 'identity:logout' %}" method="post" class="m-0 px-1" hx-boost="false" data-turbo="false">
+                        {% csrf_token %}
+                        <button type="submit" class="dropdown-item text-danger py-2 rounded-3"><i class="bi bi-box-arrow-right me-2"></i> Log out</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="app-wrapper">
+    <aside class="app-sidebar" id="sidebar">
+        
+        <div class="text-xs fw-bold text-muted text-uppercase mb-3 px-3" style="font-size: 0.75rem; letter-spacing: 0.5px;">Main Menu</div>
+        <ul class="nav flex-column mb-4" id="mainSidebarMenu">
+            
+            <li class="nav-item">
+                <a href="{% url 'saas_core:dashboard_home' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'dashboard_home' %}active{% endif %}">
+                    <i class="bi bi-grid-1x2-fill me-2"></i> <span>Dashboard</span>
+                </a>
+            </li>
+
+            <li class="nav-item mt-2">
+                {% with website_urls="builder_dashboard,theme_store,navigation_manager,asset_library,form_submissions" %}
+                <a class="nav-link-custom d-flex justify-content-between align-items-center {% if request.resolver_match.url_name not in website_urls %}collapsed{% endif %}" data-bs-toggle="collapse" href="#menuCollapse_Website" role="button" aria-expanded="{% if request.resolver_match.url_name in website_urls %}true{% else %}false{% endif %}">
+                    <div>
+                        <i class="bi bi-window-desktop me-2 text-primary"></i> 
+                        <span class="fw-bold">Website Builder</span>
+                    </div>
+                    <i class="bi bi-chevron-down chevron-icon"></i>
+                </a>
+                
+                <div class="collapse {% if request.resolver_match.url_name in website_urls %}show{% endif %}" id="menuCollapse_Website">
+                    <ul class="nav flex-column border-start ms-4 ps-2 mt-1 mb-2 border-2 border-primary border-opacity-25">
+                        <li class="nav-item">
+                            <a href="{% url 'lumo_sites:builder_dashboard' %}" class="nav-link-custom py-2 {% if request.resolver_match.url_name == 'builder_dashboard' %}active{% endif %}" style="font-size: 0.88rem;">
+                                <i class="bi bi-layout-text-window me-2"></i> Pages
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{% url 'lumo_sites:theme_store' %}" class="nav-link-custom py-2 {% if request.resolver_match.url_name == 'theme_store' %}active{% endif %}" style="font-size: 0.88rem;">
+                                <i class="bi bi-palette me-2"></i> Theme Store
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{% url 'lumo_sites:navigation_manager' %}" class="nav-link-custom py-2 {% if request.resolver_match.url_name == 'navigation_manager' %}active{% endif %}" style="font-size: 0.88rem;">
+                                <i class="bi bi-menu-button-wide me-2"></i> Navigation
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{% url 'lumo_sites:asset_library' %}" class="nav-link-custom py-2 {% if request.resolver_match.url_name == 'asset_library' %}active{% endif %}" style="font-size: 0.88rem;">
+                                <i class="bi bi-images me-2"></i> Assets
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{% url 'lumo_sites:form_submissions' %}" class="nav-link-custom py-2 {% if request.resolver_match.url_name == 'form_submissions' %}active{% endif %}" style="font-size: 0.88rem;">
+                                <i class="bi bi-inbox me-2"></i> Form Entries
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                {% endwith %}
+            </li>
+        </ul>
+
+        {% has_permission 'company.read' as can_read_company %}
+        {% has_permission 'team.read' as can_read_team %}
+        {% has_permission 'role.read' as can_read_role %}
+
+        {% if can_read_company or can_read_team or can_read_role %}
+        <div class="text-xs fw-bold text-muted text-uppercase mb-3 px-3 mt-4" style="font-size: 0.75rem; letter-spacing: 0.5px;">Administration</div>
+        
+        <ul class="nav flex-column mb-4">
+            {% with settings_urls="workspace_preferences,domain_manager,company_list,team_list,role_list,audit_log_list,workspace_payment_settings,billing_dashboard" %}
+            <li class="nav-item">
+                <a class="nav-link-custom d-flex justify-content-between align-items-center {% if request.resolver_match.url_name not in settings_urls %}collapsed{% endif %}" data-bs-toggle="collapse" href="#settingsCollapse" role="button" aria-expanded="{% if request.resolver_match.url_name in settings_urls %}true{% else %}false{% endif %}">
+                    <div><i class="bi bi-gear-fill me-2 text-secondary"></i> <span>Workspace Settings</span></div>
+                    <i class="bi bi-chevron-down chevron-icon"></i>
+                </a>
+                
+                <div class="collapse {% if request.resolver_match.url_name in settings_urls %}show{% endif %}" id="settingsCollapse">
+                    <ul class="nav flex-column border-start ms-4 ps-2 mt-1 mb-2 border-2 border-secondary border-opacity-25">
+                        
+                        <li class="nav-item">
+                            <a href="{% url 'saas_core:workspace_preferences' %}" class="nav-link-custom py-2 {% if request.resolver_match.url_name == 'workspace_preferences' %}active{% endif %}" style="font-size: 0.88rem;">
+                                <i class="bi bi-sliders me-2"></i> Preferences
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="{% url 'lumo_sites:domain_manager' %}" class="nav-link-custom py-2 {% if request.resolver_match.url_name == 'domain_manager' %}active{% endif %}">
+                                <i class="bi bi-globe2 me-2 text-primary"></i> 
+                                <span class="fw-bold">Custom Domains</span>
+                            </a>
+                        </li>
+
+                        {% if can_read_company %}
+                        <li class="nav-item">
+                            <a href="{% url 'saas_core:company_list' %}" class="nav-link-custom py-2 {% if request.resolver_match.url_name == 'company_list' %}active{% endif %}" style="font-size: 0.88rem;">
+                                <i class="bi bi-buildings me-2"></i> Company Profile
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% if can_read_team %}
+                        <li class="nav-item">
+                            <a href="{% url 'saas_core:team_list' %}" class="nav-link-custom py-2 {% if request.resolver_match.url_name == 'team_list' %}active{% endif %}" style="font-size: 0.88rem;">
+                                <i class="bi bi-people me-2"></i> Users & Team
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% if can_read_role %}
+                        <li class="nav-item">
+                            <a href="{% url 'saas_core:role_list' %}" class="nav-link-custom py-2 {% if request.resolver_match.url_name == 'role_list' %}active{% endif %}" style="font-size: 0.88rem;">
+                                <i class="bi bi-shield-lock me-2"></i> Roles & Permissions
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="{% url 'saas_core:audit_log_list' %}" class="nav-link-custom py-2 {% if request.resolver_match.url_name == 'audit_log_list' %}active{% endif %}" style="font-size: 0.88rem;">
+                                <i class="bi bi-shield-check me-2"></i> Security & Audit
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        <li class="nav-item">
+                            <a href="{% url 'saas_core:workspace_payment_settings' %}" class="nav-link-custom py-2 {% if request.resolver_match.url_name == 'workspace_payment_settings' %}active{% endif %}" style="font-size: 0.88rem;">
+                                <i class="bi bi-credit-card-2-front me-2"></i> Payment API
+                            </a>
+                        </li>
+
+                        {% has_permission 'billing.read' as can_read_billing %}
+                        {% if can_read_billing %}
+                        <li class="nav-item">
+                            <a href="{% url 'saas_core:billing_dashboard' %}" class="nav-link-custom py-2 {% if request.resolver_match.url_name == 'billing_dashboard' %}active{% endif %}" style="font-size: 0.88rem;">
+                                <i class="bi bi-credit-card me-2"></i> Billing & Usage
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </li>
+            {% endwith %}
+        </ul>
+        {% endif %}
+
+        {% if request.user.is_superuser or request.user.is_staff %}
+        <div class="text-xs fw-bold text-danger text-uppercase mb-3 px-3 mt-4" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+            <i class="bi bi-shield-lock-fill me-1"></i> Superadmin
+        </div>
+        <ul class="nav flex-column mb-4">
+            <li class="nav-item">
+                <a href="{% url 'saas_core:superadmin_workspace_list' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'superadmin_workspace_list' %}active{% endif %}">
+                    <i class="bi bi-globe me-2"></i> <span>All Workspaces</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'saas_core:superadmin_plan_list' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'superadmin_plan_list' %}active{% endif %}">
+                    <i class="bi bi-tags me-2"></i> <span>Pricing Plans</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'saas_core:superadmin_payment_list' %}" class="nav-link-custom py-2 {% if request.resolver_match.url_name == 'superadmin_payment_list' %}active{% endif %}">
+                    <i class="bi bi-cash-coin me-2"></i> Payment Approvals
+                </a>
+            </li>
+
+            {% with finance_urls="tax_rate_list,payment_gateway_list,payment_account_list" %}
+            <li class="nav-item">
+                <a class="nav-link-custom d-flex justify-content-between align-items-center {% if request.resolver_match.url_name not in finance_urls %}collapsed{% endif %}" data-bs-toggle="collapse" href="#financeCollapse" role="button" aria-expanded="{% if request.resolver_match.url_name in finance_urls %}true{% else %}false{% endif %}">
+                    <div><i class="bi bi-bank2 me-2 text-danger"></i> <span class="text-danger">Finance Settings</span></div>
+                    <i class="bi bi-chevron-down chevron-icon text-danger"></i>
+                </a>
+                <div class="collapse {% if request.resolver_match.url_name in finance_urls %}show{% endif %}" id="financeCollapse">
+                    <ul class="nav flex-column border-start ms-4 ps-2 mt-1 mb-2 border-2 border-danger border-opacity-25">
+                        <li class="nav-item">
+                            <a href="{% url 'saas_core:tax_rate_list' %}" class="nav-link-custom py-2 {% if request.resolver_match.url_name == 'tax_rate_list' %}active{% endif %}" style="font-size: 0.88rem;">
+                                <i class="bi bi-percent me-2"></i> Tax Rates
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{% url 'saas_core:payment_gateway_list' %}" class="nav-link-custom py-2 {% if request.resolver_match.url_name == 'payment_gateway_list' %}active{% endif %}" style="font-size: 0.88rem;">
+                                <i class="bi bi-credit-card-2-front me-2"></i> Gateways
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{% url 'saas_core:payment_account_list' %}" class="nav-link-custom py-2 {% if request.resolver_match.url_name == 'payment_account_list' %}active{% endif %}" style="font-size: 0.88rem;">
+                                <i class="bi bi-piggy-bank me-2"></i> Bank Accounts
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+            {% endwith %}
+            
+            {% if request.user.is_superuser %}
+            <li><hr class="dropdown-divider mx-3 my-2 opacity-25"></li>
+            <li class="px-3 mt-2 mb-1 text-muted text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 1px;">Platform Control</li>
+            
+            {% with theme_urls="superadmin_sitekit_list,superadmin_section_list" %}
+            <li class="nav-item mt-3">
+                <a class="nav-link-custom d-flex justify-content-between align-items-center {% if request.resolver_match.url_name not in theme_urls %}collapsed{% endif %}" data-bs-toggle="collapse" href="#themeEngineCollapse" role="button" aria-expanded="{% if request.resolver_match.url_name in theme_urls %}true{% else %}false{% endif %}">
+                    <div><i class="bi bi-brush-fill me-2 text-danger"></i> <span class="text-danger">Theme Engine</span></div>
+                    <i class="bi bi-chevron-down chevron-icon text-danger"></i>
+                </a>
+                <div class="collapse {% if request.resolver_match.url_name in theme_urls %}show{% endif %}" id="themeEngineCollapse">
+                    <ul class="nav flex-column border-start ms-4 ps-2 mt-1 mb-2 border-2 border-danger border-opacity-25">
+                        <li class="nav-item">
+                            <a href="{% url 'lumo_sites:superadmin_sitekit_list' %}" class="nav-link-custom py-2 {% if request.resolver_match.url_name == 'superadmin_sitekit_list' %}active{% endif %}" style="font-size: 0.88rem;">
+                                <i class="bi bi-shop me-2"></i> Master Themes
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{% url 'lumo_sites:superadmin_section_list' %}" class="nav-link-custom py-2 {% if request.resolver_match.url_name == 'superadmin_section_list' %}active{% endif %}" style="font-size: 0.88rem;">
+                                <i class="bi bi-puzzle me-2"></i> UI Components
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+            {% endwith %}
+            
+            <li class="nav-item">
+                <a href="{% url 'saas_core:superadmin_global_settings' %}" class="nav-link-custom text-danger {% if request.resolver_match.url_name == 'superadmin_global_settings' %}active{% endif %}">
+                    <i class="bi bi-gear-fill me-2"></i> <span>Global Settings</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'saas_core:superadmin_module_registry' %}" class="nav-link-custom text-danger {% if request.resolver_match.url_name == 'superadmin_module_registry' %}active{% endif %}">
+                    <i class="bi bi-box-seam-fill me-2"></i> <span>Module Registry</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'saas_core:superadmin_global_audit' %}" class="nav-link-custom text-danger {% if request.resolver_match.url_name == 'superadmin_global_audit' %}active{% endif %}">
+                    <i class="bi bi-shield-check me-2"></i> <span>Global Audit</span>
+                </a>
+            </li>
+            {% endif %}
+
+        </ul>
+        {% endif %}
+
+        <div class="mt-5 p-3 bg-primary-light rounded-4 text-center" style="background-color: #e0e7ff; border: 1px dashed #a5b4fc;">
+            <div class="bg-white rounded-circle d-inline-flex align-items-center justify-content-center mb-2 shadow-sm" style="width: 40px; height: 40px; color: var(--primary-color);"><i class="bi bi-lightning-charge-fill"></i></div>
+            <h6 class="fw-bold text-dark" style="font-size: 0.9rem;">Unlock Pro Features</h6>
+            <p class="text-muted small mb-3">Get advanced CRM and Analytics.</p>
+            <a href="{% url 'saas_core:subscription_plans' %}" class="btn btn-sm btn-primary rounded-pill w-100 fw-bold">Upgrade Now</a>
+        </div>
+    </aside>
+
+    <main class="app-main">
+        {% block content %}{% endblock %}
+    </main>
+</div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-4">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="toast align-items-start text-bg-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% elif message.tags == 'info' %}info{% else %}primary{% endif %} border-0 shadow-sm mb-3" 
+                 role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="15000">
+                 
+                <div class="toast-body-text">
+                    {% if message.tags == 'error' %}
+                        <i class="bi bi-x-circle-fill toast-icon"></i>
+                    {% elif message.tags == 'warning' %}
+                        <i class="bi bi-exclamation-triangle-fill toast-icon"></i>
+                    {% elif message.tags == 'info' %}
+                        <i class="bi bi-info-circle-fill toast-icon"></i>
+                    {% else %}
+                        <i class="bi bi-check-circle-fill toast-icon"></i>
+                    {% endif %}
+                    
+                    <span class="flex-grow-1">{{ message|safe }}</span>
+                    
+                    <button type="button" class="btn-close-clean flex-shrink-0" data-bs-dismiss="toast" aria-label="Close">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function copyInviteLink(btnElement, inputId) {
+        const inputElement = document.getElementById(inputId);
+        inputElement.select();
+        inputElement.setSelectionRange(0, 99999); 
+
+        navigator.clipboard.writeText(inputElement.value).then(() => {
+            const originalHtml = btnElement.innerHTML;
+            btnElement.innerHTML = '<i class="bi bi-check2-all"></i> Copied';
+            btnElement.classList.replace('text-primary', 'text-success');
+            
+            setTimeout(() => {
+                btnElement.innerHTML = originalHtml;
+                btnElement.classList.replace('text-success', 'text-primary');
+            }, 3000);
+        }).catch(err => {
+            console.error("Failed to copy!", err);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var toastEls = document.querySelectorAll('.toast');
+        toastEls.forEach(function(toastEl) { new bootstrap.Toast(toastEl).show(); });
+        
+        const toggleBtn = document.getElementById('sidebarToggleBtn');
+        const sidebar = document.getElementById('sidebar');
+        if(toggleBtn) { toggleBtn.addEventListener('click', () => { sidebar.classList.toggle('show'); }); }
+
+        const collapseElements = document.querySelectorAll('.collapse');
+        collapseElements.forEach(collapseEl => {
+            collapseEl.addEventListener('show.bs.collapse', function () {
+                const trigger = document.querySelector(`[href="#${this.id}"]`);
+                if(trigger) { const icon = trigger.querySelector('.chevron-icon'); if(icon) icon.style.transform = 'rotate(180deg)'; }
+            });
+            collapseEl.addEventListener('hide.bs.collapse', function () {
+                const trigger = document.querySelector(`[href="#${this.id}"]`);
+                if(trigger) { const icon = trigger.querySelector('.chevron-icon'); if(icon) icon.style.transform = 'rotate(0deg)'; }
+            });
+        });
+    });
+</script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

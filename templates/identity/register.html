@@ -1,0 +1,127 @@
+{% extends 'base_auth.html' %}
+
+{% block title %}Sign up | Lumo OS{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --brand-primary: #2563eb;
+        --brand-primary-hover: #1d4ed8;
+        --text-main: #0f172a;
+        --input-border: #cbd5e1;
+    }
+
+    /* --- Left Side Panel --- */
+    .left-panel { 
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); 
+        color: white; 
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 3rem;
+    }
+    
+    /* --- Right Side Panel --- */
+    .right-panel { 
+        min-height: 100vh; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+    }
+    .auth-form-wrapper { width: 100%; max-width: 440px; padding: 2rem; }
+    
+    .form-control:focus {
+        border-color: var(--brand-primary);
+        box-shadow: 0 0 0 0.25rem rgba(37, 99, 235, 0.15);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="row g-0">
+        
+        <div class="col-lg-5 d-none d-lg-flex left-panel">
+            <div>
+                <h3 class="fw-bold d-flex align-items-center gap-2">
+                    <i class="bi bi-layers-fill" style="color: #3b82f6;"></i> Lumo OS
+                </h3>
+            </div>
+            
+            <div>
+                <h1 class="fw-bold display-5 mb-4" style="line-height: 1.1;">Build your business empire.</h1>
+                <p class="fs-5 text-light opacity-75">The all-in-one OS for managing your CRM, billing, and complete SaaS workflow seamlessly.</p>
+            </div>
+            
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                    <i class="bi bi-shield-check fs-5"></i>
+                </div>
+                <div>
+                    <h6 class="mb-0 fw-bold">Enterprise Grade</h6>
+                    <small class="opacity-75">Secure & Scalable Architecture</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7 right-panel bg-white">
+            <div class="auth-form-wrapper">
+                
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="mb-5">
+                    <h2 class="fw-bold mb-2 text-dark">Create Workspace</h2>
+                    <p class="text-secondary">Enter your details to get started.</p>
+                </div>
+
+                <form method="POST" action="{% url 'identity:register' %}">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-dark">Workspace / Company Name</label>
+                        {{ form.company_name }}
+                        {% if form.company_name.errors %}
+                            <div class="text-danger small mt-1">{{ form.company_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-dark">Work Email</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-dark">Password</label>
+                        {{ form.password }}
+                        {% if form.password.errors %}
+                            <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <button type="submit" class="btn w-100 py-3 fw-bold text-white rounded-3 mb-4 shadow-sm" style="background-color: var(--brand-primary); font-size: 1.1rem;">
+                        Create Account
+                    </button>
+                    
+                    <p class="text-center text-secondary small">
+                        Already have an account? 
+                        <a href="{% url 'identity:login' %}" class="text-decoration-none fw-semibold" style="color: var(--brand-primary);">Log in</a>
+                    </p>
+                </form>
+
+            </div>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

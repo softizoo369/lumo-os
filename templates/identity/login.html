@@ -1,0 +1,67 @@
+{% extends 'base_auth.html' %} 
+
+{% block title %}Sign In | Lumo OS{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-center min-vh-100 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5 col-lg-4">
+                
+                <div class="text-center mb-4">
+                    <h2 class="fw-bold text-primary mb-0"><i class="bi bi-layers-fill"></i> Lumo OS</h2>
+                    <p class="text-muted small">Sign in to your workspace</p>
+                </div>
+
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-body p-4 p-md-5">
+                        
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show small py-2" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" style="padding: 0.8rem;" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <form method="POST" action="{% url 'identity:login' %}" hx-boost="false" data-turbo="false">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label for="email" class="form-label fw-medium small text-dark">Email Address</label>
+                                <input type="email" class="form-control py-2" id="email" name="email" placeholder="name@company.com" required autofocus>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label for="password" class="form-label fw-medium small text-dark mb-0">Password</label>
+                                    <a href="#" class="small text-decoration-none text-primary">Forgot?</a>
+                                </div>
+                                <input type="password" class="form-control py-2" id="password" name="password" placeholder="••••••••" required>
+                            </div>
+                            
+                            <div class="d-grid mb-3">
+                                <button type="submit" class="btn btn-primary py-2 fw-bold rounded-3 shadow-sm">
+                                    Sign In <i class="bi bi-arrow-right ms-1"></i>
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="text-center mt-4">
+                            <span class="text-muted small">Don't have a workspace?</span>
+                            <a href="{% url 'identity:register' %}" class="text-decoration-none fw-bold small ms-1">Create one here</a>
+                        </div>
+
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4 text-muted small">
+                    &copy; 2026 Lumo OS Platform. All rights reserved.
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

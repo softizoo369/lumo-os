@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>{{ page.seo_title|default:page.title }}</title>
+    <meta name="description" content="{{ page.seo_description }}">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 🟢 DYNAMIC THEME ENGINE INJECTION -->
+    <style>
+        :root {
+            --primary-color: {{ site.active_preset.primary_color|default:'#4f46e5' }};
+            --secondary-color: {{ site.active_preset.secondary_color|default:'#ffffff' }};
+            --heading-font: '{{ site.active_preset.heading_font|default:'Inter' }}', sans-serif;
+            --body-font: '{{ site.active_preset.body_font|default:'Inter' }}', sans-serif;
+            --border-radius: {{ site.active_preset.border_radius|default:'8px' }};
+        }
+        
+        h1, h2, h3, h4, h5, h6 { font-family: var(--heading-font); }
+        body { font-family: var(--body-font); background-color: #f8fafc; }
+        
+        .bg-primary { background-color: var(--primary-color) !important; }
+        .text-primary { color: var(--primary-color) !important; }
+        .rounded-theme { border-radius: var(--border-radius) !important; }
+
+        /* extra polish for glass effect */
+        .nav-glass {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.02);
+        }
+
+        /* link underline animation */
+        .menu-link {
+            position: relative;
+            font-weight: 600;
+            transition: color 0.2s ease;
+        }
+        .menu-link::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: -2px;
+            width: 0;
+            height: 2.5px;
+            border-radius: 999px;
+            background: var(--primary-color);
+            transform: translateX(-50%);
+            transition: width 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .menu-link:hover::after {
+            width: 80%;
+        }
+        .menu-link:hover {
+            color: #0f172a;
+        }
+
+        /* CTA shimmer */
+        .cta-btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .cta-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.2) 50%, transparent 60%);
+            transform: translateX(-100%);
+            transition: transform 0.5s ease;
+        }
+        .cta-btn:hover::before {
+            transform: translateX(100%);
+        }
+        .cta-btn:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+<body>
+
+    {% if is_preview %}
+    <!-- Preview Mode Indicator -->
+    <div style="background-color: #f59e0b; color: #fff; text-align: center; padding: 8px; font-weight: bold; font-size: 0.85rem;">
+        ⚠️ You are viewing the Draft Preview mode. Changes are not live yet.
+    </div>
+    {% endif %}
+
+    <!-- ==========================================================
+         100x PREMIUM GLASS NAVBAR (replaces old header)
+         ========================================================== -->
+    <nav class="sticky top-0 z-50 nav-glass transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-[72px]">
+            
+            <!-- Logo / Branding -->
+            <div class="flex-shrink-0 group">
+                <a href="/" class="text-2xl font-extrabold tracking-tight transition-all duration-300 hover:scale-105 inline-block"
+                   style="color: var(--primary-color); text-shadow: 0 2px 12px rgba(79,70,229,0.12);">
+                    {{ site.workspace.name }}
+                </a>
+                <!-- glowing underline -->
+                <span class="block h-0.5 w-0 group-hover:w-full transition-all duration-500 ease-out"
+                      style="background: linear-gradient(90deg, var(--primary-color), transparent);"></span>
+            </div>
+
+            <!-- Dynamic Menu (from main_menu) -->
+            <div class="hidden md:flex items-center space-x-1 lg:space-x-2">
+                {% for item in main_menu.items.all %}
+                    <a href="{{ item.href }}" class="menu-link px-4 py-2 text-sm text-gray-700/80">
+                        {{ item.label }}
+                    </a>
+                {% empty %}
+                    <a href="/" class="menu-link px-4 py-2 text-sm text-gray-700/80">Home</a>
+                    <a href="/about" class="menu-link px-4 py-2 text-sm text-gray-700/80">About</a>
+                    <a href="/services" class="menu-link px-4 py-2 text-sm text-gray-700/80">Services</a>
+                {% endfor %}
+            </div>
+
+            <!-- CTA Button (optional – add a context variable if needed) -->
+            <div class="hidden md:flex items-center">
+                <a href="{{ site.cta_button.url|default:'/contact' }}"
+                   class="cta-btn inline-flex items-center text-sm font-bold text-white px-6 py-2.5 rounded-full shadow-md"
+                   style="background: linear-gradient(135deg, var(--primary-color), color-mix(in srgb, var(--primary-color) 80%, #000));
+                          border-radius: var(--border-radius);
+                          box-shadow: 0 4px 16px rgba(79,70,229,0.3);">
+                    {{ site.cta_button.label|default:'Get Started' }}
+                </a>
+            </div>
+
+        </div>
+    </nav>
+
+    <!-- Main content -->
+    <main>
+        {{ rendered_sections|safe }}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-400 py-8 text-center mt-10">
+        <p>&copy; 2026 {{ site.workspace.name }}. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Tax Rates | Finance Center{% endblock %}
+{% block extra_head %}
+<style>
+    .table-custom th { background-color: #f8fafc; color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; padding: 12px 15px; }
+    .table-custom td { vertical-align: middle; font-size: 0.85rem; border-bottom: 1px solid #f1f5f9; padding: 12px 15px; }
+    .action-icon { color: #94a3b8; transition: all 0.2s; cursor: pointer; font-size: 1.1rem; }
+    .action-icon:hover { color: var(--primary-color); }
+</style>
+{% endblock %}
+{% block content %}
+<div class="container-fluid py-4 px-lg-5">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start mb-4 pb-3 border-bottom">
+        <div>
+            <h3 class="fw-bold text-dark mb-1"><i class="bi bi-percent text-primary me-2"></i>Tax Configurations</h3>
+            <p class="text-muted small mb-0">Manage global tax rates for billing and invoicing.</p>
+        </div>
+        <a href="{% url 'saas_core:tax_rate_create' %}" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm fw-bold"><i class="bi bi-plus-lg me-1"></i> Add Tax Rate</a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <table class="table table-hover table-custom w-100 mb-0">
+            <thead>
+                <tr><th class="ps-4">Tax Name</th><th>Country</th><th>Rate (%)</th><th>Effective Range</th><th>Status</th><th class="text-end pe-4">Actions</th></tr>
+            </thead>
+            <tbody>
+                {% for tax in taxes %}
+                <tr class="{% if not tax.is_active %}bg-light opacity-75{% endif %}">
+                    <td class="ps-4 fw-bold text-dark">{{ tax.name }}</td>
+                    <td><span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25">{{ tax.country.name|default:"Global" }}</span></td>
+                    <td class="fw-bolder text-primary fs-6">{{ tax.percentage }}%</td>
+                    <td class="text-muted small">{{ tax.effective_from|date:"M d, Y" }} &rarr; {{ tax.effective_to|date:"M d, Y"|default:"Present" }}</td>
+                    <td>
+                        {% if tax.is_active %}
+                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1"><i class="bi bi-check-circle-fill me-1"></i> Active</span>
+                        {% else %}
+                            <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2 py-1"><i class="bi bi-slash-circle-fill me-1"></i> Archived</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end pe-4">
+                        <div class="d-flex justify-content-end align-items-center gap-3">
+                            <a href="{% url 'saas_core:tax_rate_update' tax.id %}"><i class="bi bi-pencil-square action-icon text-primary" title="Edit"></i></a>
+                            <form action="{% url 'saas_core:tax_rate_toggle' tax.id %}" method="POST" class="d-inline m-0 p-0">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-link p-0 m-0 border-0 align-baseline" title="Toggle Status">
+                                    <i class="bi {% if tax.is_active %}bi-archive-fill text-danger{% else %}bi-arrow-counterclockwise text-success{% endif %} action-icon"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center py-5 text-muted"><i class="bi bi-receipt fs-1 d-block mb-2 opacity-25"></i>No tax rates found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

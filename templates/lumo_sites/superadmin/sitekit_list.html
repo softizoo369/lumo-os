@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Theme Store Manager - Lumo OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3 px-lg-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start mb-4 pb-3 border-bottom">
+        <div class="mb-3 mb-md-0">
+            <h3 class="fw-bold text-dark mb-1"><i class="bi bi-shop-window text-primary me-2"></i>Theme Store Manager</h3>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0 small">
+                    <li class="breadcrumb-item"><a href="{% url 'saas_core:dashboard_home' %}" class="text-decoration-none text-muted"><i class="bi bi-house"></i> Home</a></li>
+                    <li class="breadcrumb-item"><a href="#" class="text-decoration-none text-muted">Superadmin</a></li>
+                    <li class="breadcrumb-item active fw-semibold">SiteKits (Themes)</li>
+                </ol>
+            </nav>
+        </div>
+        <a href="{% url 'lumo_sites:superadmin_sitekit_create' %}" class="btn btn-dark rounded-pill px-4 shadow-sm fw-bold">
+            <i class="bi bi-plus-circle me-2"></i>Create New Theme
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="py-3 ps-4 text-muted small text-uppercase fw-bold">Theme Name</th>
+                        <th class="py-3 text-muted small text-uppercase fw-bold">Target Industry</th>
+                        <th class="py-3 text-muted small text-uppercase fw-bold">Pricing Model</th>
+                        <th class="py-3 text-muted small text-uppercase fw-bold">Current Version</th>
+                        <th class="py-3 pe-4 text-end text-muted small text-uppercase fw-bold">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for kit in sitekits %}
+                    <tr>
+                        <td class="ps-4 py-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-primary bg-opacity-10 text-primary rounded-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                    <i class="bi bi-palette fs-5"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold text-dark mb-0">{{ kit.name }}</h6>
+                                    <span class="text-muted small">ID: {{ kit.id|stringformat:"s"|slice:":8" }}...</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if kit.industry %}
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill px-3 py-2">{{ kit.industry.name }}</span>
+                            {% else %}
+                                <span class="text-muted small">Any Industry</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if kit.is_premium %}
+                                <span class="fw-bold text-success">${{ kit.price }}</span> <span class="text-muted small">/ Premium</span>
+                            {% else %}
+                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2">Free Theme</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% with latest_version=kit.versions.last %}
+                                {% if latest_version %}
+                                    <span class="fw-bold text-dark">v{{ latest_version.version_number }}</span>
+                                {% else %}
+                                    <span class="text-warning small">No versions yet</span>
+                                {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td class="pe-4 text-end">
+                            {% with latest_version=kit.versions.last %}
+                                {% if latest_version %}
+                                    <a href="{% url 'lumo_sites:superadmin_sitekit_builder' latest_version.id %}" class="btn btn-sm btn-primary rounded-pill fw-bold px-3 shadow-sm">
+                                        <i class="bi bi-hammer me-1"></i> Build Manifest
+                                    </a>
+                                {% endif %}
+                            {% endwith %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <i class="bi bi-shop text-muted opacity-25 d-block mb-3" style="font-size: 3rem;"></i>
+                            <h5 class="fw-bold text-dark">No Themes Available</h5>
+                            <p class="text-muted mb-0">Click 'Create New Theme' to start building your marketplace.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Site Builder - Lumo OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid max-w-5xl mx-auto py-4">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-window-sidebar text-primary me-2"></i>Pages & Sections</h2>
+            <p class="text-muted small">Manage your website pages and edit their content.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'lumo_sites:page_create' %}" class="btn btn-primary btn-sm fw-bold rounded-pill px-4 shadow-sm">
+                <i class="bi bi-plus-circle me-1"></i> New Page
+            </a>
+            <a href="{% url 'lumo_sites:public_home' %}" target="_blank" class="btn btn-outline-dark btn-sm fw-bold rounded-pill px-4 shadow-sm">
+                Live Site <i class="bi bi-arrow-up-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% for data in dashboard_data %}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden hover-shadow transition">
+                <div class="card-body px-4 py-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                    
+                    <!-- Page Info -->
+                    <div>
+                        <h5 class="fw-bold mb-1 d-flex align-items-center gap-2 text-dark">
+                            <i class="bi bi-file-earmark-text text-primary opacity-75"></i> {{ data.page.title }}
+                            <span class="badge bg-warning bg-opacity-10 text-dark border border-warning border-opacity-25 rounded-pill px-2 py-1 ms-1" style="font-size: 0.65rem;">Draft v{{ data.draft_revision.version_number }}</span>
+                        </h5>
+                        <p class="text-muted small mb-0 font-monospace">/{{ data.page.slug }}</p>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        <!-- 🟢 SPRINT 3: Open Builder Button -->
+                        <a href="{% url 'lumo_sites:page_builder' page_id=data.page.id %}" class="btn btn-sm btn-primary rounded-pill fw-bold px-4 shadow-sm">
+                            <i class="bi bi-magic me-1"></i> Open Builder
+                        </a>
+                        
+                        <!-- Settings (SEO & Slug Edit) -->
+                        <a href="{% url 'lumo_sites:page_edit' page_id=data.page.id %}" class="btn btn-sm btn-light border rounded-pill fw-bold px-3 text-muted hover-primary">
+                            <i class="bi bi-gear"></i> Settings
+                        </a>
+                        
+                        <!-- Preview -->
+                        <a href="{% url 'lumo_sites:preview_page' slug=data.page.slug %}" target="_blank" class="btn btn-sm btn-light border rounded-pill fw-bold px-3 text-muted">
+                            <i class="bi bi-eye"></i> Preview
+                        </a>
+                        
+                        <!-- Publish -->
+                        <form action="{% url 'lumo_sites:publish_action' revision_id=data.draft_revision.id %}" method="POST" class="m-0" onsubmit="return confirm('Push these changes live?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-dark fw-bold rounded-pill px-3 shadow-sm">
+                                Publish
+                            </button>
+                        </form>
+
+                        <!-- Delete -->
+                        <form action="{% url 'lumo_sites:page_delete' page_id=data.page.id %}" method="POST" class="m-0" onsubmit="return confirm('Delete this page? This will also remove it from the navigation menus.');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill fw-bold px-3">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="display-1 text-muted mb-3 opacity-25"><i class="bi bi-layout-wtf"></i></div>
+            <h4 class="fw-bold text-dark">No Pages Found</h4>
+            <p class="text-muted small mb-4">Click "New Page" to start building your website.</p>
+            <a href="{% url 'lumo_sites:page_create' %}" class="btn btn-primary fw-bold rounded-pill px-4 py-2 shadow-sm">
+                <i class="bi bi-plus-circle me-1"></i> Create Your First Page
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .hover-shadow:hover {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+        transform: translateY(-2px);
+    }
+    .transition {
+        transition: all 0.2s ease-in-out;
+    }
+</style>
+{% endblock %}

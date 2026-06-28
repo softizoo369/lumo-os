@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+{% block title %}Upgrade Plan | Lumo OS{% endblock %}
+
+{% block extra_head %}
+<style>
+    :root {
+        --saas-primary: #000000;
+        --saas-text-main: #111827;
+        --saas-text-muted: #6b7280;
+        --saas-border: #e5e7eb;
+        --saas-bg: #f9fafb;
+    }
+    
+    body { background-color: var(--saas-bg); }
+    
+    .title-compact { font-size: 2.2rem; font-weight: 800; letter-spacing: -1px; color: var(--saas-text-main); line-height: 1.2; }
+    .subtitle-compact { font-size: 0.95rem; color: var(--saas-text-muted); max-width: 500px; margin: 0 auto; }
+    
+    .billing-toggle-slim { background: #f3f4f6; padding: 4px; border-radius: 8px; display: inline-flex; position: relative; border: 1px solid var(--saas-border); }
+    .billing-toggle-slim .btn { border: none; border-radius: 6px; padding: 6px 16px; font-size: 0.85rem; font-weight: 600; color: var(--saas-text-muted); transition: 0.2s; z-index: 2; box-shadow: none; }
+    .billing-toggle-slim .btn.active { color: #000; }
+    .toggle-slider-slim { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); background: #fff; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: 0.2s ease-out; z-index: 1; }
+    #yearly-toggle:checked ~ .toggle-slider-slim { transform: translateX(100%); }
+
+    .usage-banner { background: #fff; border: 1px solid var(--saas-border); border-radius: 12px; padding: 12px 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+    .usage-item { display: flex; flex-direction: column; gap: 4px; border-right: 1px solid var(--saas-border); padding-right: 15px; margin-right: 15px; }
+    .usage-item:last-child { border-right: none; margin-right: 0; padding-right: 0; }
+    .progress-micro { height: 4px; border-radius: 4px; background-color: #f3f4f6; width: 100px; }
+    .progress-micro .progress-bar { background-color: #000; border-radius: 4px; }
+
+    .pricing-card-compact { background: #fff; border: 1px solid var(--saas-border); border-radius: 16px; transition: all 0.2s ease; position: relative; display: flex; flex-direction: column; }
+    .pricing-card-compact:hover { border-color: #d1d5db; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); transform: translateY(-2px); }
+    .pricing-card-compact.popular { border-color: #000; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    
+    .popular-tag { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: #000; color: #fff; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 10px; border-radius: 20px; }
+    
+    .price-baseline { display: flex; align-items: baseline; gap: 4px; line-height: 1; margin: 10px 0; }
+    .price-currency { font-size: 1.2rem; font-weight: 600; color: var(--saas-text-muted); }
+    .price-amount { font-size: 2.5rem; font-weight: 800; letter-spacing: -1px; color: var(--saas-text-main); }
+    .price-cycle { font-size: 0.8rem; font-weight: 500; color: var(--saas-text-muted); }
+    
+    .feature-list-compact { list-style: none; padding: 0; margin: 0; }
+    .feature-list-compact li { font-size: 0.85rem; color: var(--saas-text-main); margin-bottom: 8px; display: flex; align-items: flex-start; line-height: 1.4; }
+    .feature-list-compact i { color: #10b981; font-size: 0.9rem; margin-right: 8px; margin-top: 1px; }
+    .feature-list-compact i.bi-x { color: #d1d5db; }
+    
+    .feature-title-micro { font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: var(--saas-text-muted); letter-spacing: 0.5px; margin-top: 15px; margin-bottom: 10px; }
+    
+    .btn-compact { padding: 8px 16px; font-size: 0.85rem; font-weight: 600; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="container" style="max-width: 1000px;">
+        
+        <!-- 1. HEADER & SLIM TOGGLE -->
+        <div class="text-center mb-4">
+            <h2 class="title-compact mb-2">Pricing that scales with you.</h2>
+            <p class="subtitle-compact mb-3">Upgrade anytime as your business grows. No hidden fees.</p>
+            
+            <div class="billing-toggle-slim">
+                <input type="radio" name="billing_cycle" id="monthly-toggle" class="d-none" checked>
+                <label for="monthly-toggle" class="btn active m-0" onclick="togglePricing('MONTHLY')">Monthly</label>
+                
+                <input type="radio" name="billing_cycle" id="yearly-toggle" class="d-none">
+                <label for="yearly-toggle" class="btn m-0" onclick="togglePricing('YEARLY')">
+                    Yearly <span class="badge bg-success bg-opacity-10 text-success ms-1 border border-success border-opacity-25" style="font-size: 0.65rem;">-20%</span>
+                </label>
+                <div class="toggle-slider-slim"></div>
+            </div>
+        </div>
+
+        <!-- 2. HORIZONTAL SLIM USAGE BANNER -->
+        {% if usage and subscription %}
+        <div class="usage-banner d-flex flex-wrap justify-content-between align-items-center mb-4 mx-auto" style="max-width: 800px;">
+            <div class="d-flex align-items-center me-3">
+                <i class="bi bi-pie-chart-fill text-muted me-2"></i>
+                <span class="fw-bold" style="font-size: 0.8rem; color: var(--saas-text-main);">Current: {{ subscription.plan.name }}</span>
+            </div>
+            
+            <div class="d-flex flex-wrap align-items-center">
+                <div class="usage-item">
+                    <div class="d-flex justify-content-between w-100" style="font-size: 0.7rem;">
+                        <span class="fw-semibold text-muted">Users</span>
+                        <span class="fw-bold">{{ usage.total_users }}/{{ subscription.plan.max_users }}</span>
+                    </div>
+                    <div class="progress progress-micro"><div class="progress-bar" style="width: {% widthratio usage.total_users subscription.plan.max_users 100 %}%;"></div></div>
+                </div>
+                <div class="usage-item">
+                    <div class="d-flex justify-content-between w-100" style="font-size: 0.7rem;">
+                        <span class="fw-semibold text-muted">Companies</span>
+                        <span class="fw-bold">{{ usage.total_companies }}/{{ subscription.plan.max_companies }}</span>
+                    </div>
+                    <div class="progress progress-micro"><div class="progress-bar" style="width: {% widthratio usage.total_companies subscription.plan.max_companies 100 %}%;"></div></div>
+                </div>
+                <div class="usage-item border-0 pe-0 me-0">
+                    <div class="d-flex justify-content-between w-100" style="font-size: 0.7rem;">
+                        <span class="fw-semibold text-muted">Storage</span>
+                        <span class="fw-bold">{{ usage.total_storage_mb }}/{{ subscription.plan.max_storage_mb }}MB</span>
+                    </div>
+                    <div class="progress progress-micro"><div class="progress-bar" style="width: {% widthratio usage.total_storage_mb subscription.plan.max_storage_mb 100 %}%;"></div></div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 3. COMPACT PRICING CARDS -->
+        <div class="row g-3 justify-content-center">
+            {% for plan in plans %}
+            <div class="col-lg-4 col-md-6">
+                <div class="pricing-card-compact p-4 {% if plan.is_popular %}popular{% endif %}">
+                    {% if plan.is_popular %}<div class="popular-tag">Most Popular</div>{% endif %}
+                    
+                    <h6 class="fw-bold text-uppercase mb-1" style="font-size: 0.75rem; color: var(--saas-text-muted); letter-spacing: 0.5px;">{{ plan.name }}</h6>
+                    
+                    <div style="min-height: 55px;">
+                        {% if plan.requires_sales_contact %}
+                            <div class="price-baseline">
+                                <span class="price-amount" style="font-size: 2rem;">Custom</span>
+                            </div>
+                        {% else %}
+                            {% for price in plan.prices.all %}
+                            <div class="price-display price-{{ price.billing_cycle }}" {% if price.billing_cycle == 'YEARLY' %}style="display:none;"{% endif %}>
+                                <div class="price-baseline">
+                                    <span class="price-currency">{{ price.currency.code|default:"$" }}</span>
+                                    <span class="price-amount">{{ price.amount|floatformat:0 }}</span>
+                                    <span class="price-cycle">/mo</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <p class="mb-3" style="font-size: 0.8rem; color: var(--saas-text-muted); min-height: 38px;">{{ plan.description|default:"Essential features." }}</p>
+                    
+                    <!-- Call To Action -->
+                    {% if subscription.plan.id == plan.id %}
+                        <button class="btn btn-light btn-compact w-100 disabled border" style="color: var(--saas-text-muted);">Current Plan</button>
+                    {% elif plan.requires_sales_contact %}
+                        <a href="mailto:{{ global_config.support_email|default:'sales@example.com' }}?subject=Enterprise Inquiry: {{ plan.name }}" class="btn btn-dark btn-compact w-100">Contact Sales</a>
+                    {% else %}
+                        <a href="{% url 'saas_core:checkout_summary' plan.prices.first.id %}" class="btn {% if plan.is_popular %}btn-dark{% else %}btn-light border{% endif %} btn-compact w-100">
+                            Upgrade to {{ plan.name }}
+                        </a>
+                    {% endif %}
+                    
+                    <hr class="my-3 opacity-25">
+                    
+                    <div class="flex-grow-1">
+                        <div class="feature-title-micro">Usage Limits</div>
+                        <ul class="feature-list-compact">
+                            <li><i class="bi bi-check2"></i> <span><strong>{{ plan.max_users }}</strong> Team Members</span></li>
+                            <li><i class="bi bi-check2"></i> <span><strong>{{ plan.max_companies }}</strong> Companies</span></li>
+                            <li><i class="bi bi-check2"></i> <span><strong>{{ plan.max_storage_mb }}MB</strong> Storage</span></li>
+                        </ul>
+                        
+                        <div class="feature-title-micro">Included</div>
+                        <ul class="feature-list-compact">
+                            <li><i class="bi bi-check2"></i> <span>Basic Support</span></li>
+                            {% if plan.requires_sales_contact %}
+                                <li><i class="bi bi-check2"></i> <span>Dedicated Account Manager</span></li>
+                                <li><i class="bi bi-check2"></i> <span>99.99% Uptime SLA</span></li>
+                            {% else %}
+                                <li><i class="bi bi-x"></i> <span class="text-muted">Dedicated Manager</span></li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- 4. TRUST BAR -->
+        <div class="d-flex flex-wrap justify-content-center gap-4 mt-5 pt-4 border-top opacity-75 text-muted" style="font-size: 0.8rem;">
+            <span><i class="bi bi-shield-check me-1"></i> Bank-grade Security</span>
+            <span><i class="bi bi-lightning-charge me-1"></i> 99.99% Uptime</span>
+            <span><i class="bi bi-headset me-1"></i> 24/7 Support</span>
+            <span><i class="bi bi-credit-card me-1"></i> Secure Payments via Stripe</span>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function togglePricing(cycle) {
+        document.querySelectorAll('.billing-toggle-slim label').forEach(lbl => lbl.classList.remove('active'));
+        document.querySelector(`label[for="${cycle.toLowerCase()}-toggle"]`).classList.add('active');
+
+        document.querySelectorAll('.price-display').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.price-' + cycle).forEach(el => el.style.display = 'block');
+    }
+</script>
+{% endblock %}

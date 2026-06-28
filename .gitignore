@@ -1,23 +1,53 @@
-venv/
+# Python
+
 **pycache**/
-*.pyc
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+
+venv/
+env/
+.venv/
+
+# Environment Variables
 
 .env
 .env.*
+!.env.example
+
+# Django
 
 db.sqlite3
-
 media/
 staticfiles/
 
+# Logs
+
+*.log
+logs/
+
+# Coverage
+
 .coverage
 htmlcov/
+.pytest_cache/
+
+# IDE
 
 .vscode/
 .idea/
 
-*.log
+# OS
+
+.DS_Store
+Thumbs.db
+
+# Node
 
 node_modules/
 
-.DS_Store
+# Build
+
+dist/
+build/

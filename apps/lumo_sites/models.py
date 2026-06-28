@@ -223,9 +223,22 @@ class PageRevision(LumoBaseModel):
     status = models.CharField(max_length=20, choices=RevisionStatus.choices, default=RevisionStatus.DRAFT)
     
     objects = TenantManager()
+          
 
     class Meta:
         db_table = 'lumo_sites_page_revision'
+        constraints = [
+            models.UniqueConstraint(
+                fields=["page"],
+                condition=models.Q(status='DRAFT', is_deleted=False),
+                name="unique_draft_per_page"
+            ),
+            models.UniqueConstraint(
+                fields=["page"],
+                condition=models.Q(status='PUBLISHED', is_deleted=False),
+                name="unique_published_per_page"
+            )
+        ]
 
     def __str__(self):
         return f"{self.page.title} - Rev {self.version_number} ({self.status})"
@@ -235,6 +248,8 @@ class PageRevision(LumoBaseModel):
             page_workspace_id = getattr(self.page, 'workspace_id', None) or TenantPage.objects.filter(id=self.page_id).values_list('workspace_id', flat=True).first()
             self.workspace_id = page_workspace_id
         super().save(*args, **kwargs)
+    
+    
 
 class TenantPageSection(LumoBaseModel):
     workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE, related_name='page_sections', null=True)

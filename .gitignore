@@ -1,53 +1,22 @@
-# Python
-
-**pycache**/
-*.py[cod]
-*$py.class
-
-# Virtual Environment
-
 venv/
-env/
-.venv/
-
-# Environment Variables
-
 .env
 .env.*
-!.env.example
+__pycache__/
+*.pyc
 
-# Django
-
-db.sqlite3
 media/
 staticfiles/
 
-# Logs
+.db
+sqlite3
 
-*.log
-logs/
-
-# Coverage
-
-.coverage
+coverage/
 htmlcov/
 .pytest_cache/
 
-# IDE
-
-.vscode/
 .idea/
-
-# OS
-
-.DS_Store
-Thumbs.db
-
-# Node
+.vscode/
 
 node_modules/
 
-# Build
-
-dist/
-build/
+*.log
